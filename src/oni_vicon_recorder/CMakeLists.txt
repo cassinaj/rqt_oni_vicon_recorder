@@ -4,16 +4,18 @@ project(oni_vicon_recorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs vicon_sdk)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost EXACT 1.46.1 REQUIRED COMPONENTS system-mt thread-mt)
+find_package(OpenCV 3.0.0 REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -47,24 +49,23 @@ find_package(catkin REQUIRED)
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+   FILES
+   RecordingStatus.srv
+)
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  StartRecording.action
+  StopRecording.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs actionlib_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -76,11 +77,28 @@ find_package(catkin REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES oni_vicon_recorder
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ LIBRARIES oni_vicon_recorder
+ CATKIN_DEPENDS actionlib_msgs
+ DEPENDS OpenNI Boost
 )
+
+set(oni_vicon_recorder_SOURCES
+  src/kinect.cc
+  src/oni_recorder.cpp
+  src/vicon_recorder.cpp
+  src/oni_vicon_recorder.cpp
+  src/oni_vicon_recorder_node.cpp
+)
+
+set(oni_vicon_recorder_HEADERS
+  include/${PROJECT_NAME}/kinect.h
+  include/${PROJECT_NAME}/oni_recorder.hpp
+  include/${PROJECT_NAME}/vicon_recorder.hpp
+  include/${PROJECT_NAME}/oni_vicon_recorder.hpp
+)
+
+include_directories(include "/usr/include/ni/") # FIXME superbly uggly
 
 ###########
 ## Build ##
@@ -91,21 +109,33 @@ catkin_package(
 # include_directories(include)
 
 ## Declare a cpp library
-# add_library(oni_vicon_recorder
-#   src/${PROJECT_NAME}/oni_vicon_recorder.cpp
-# )
+add_library(oni_vicon_recorder
+  ${oni_vicon_recorder_SOURCES}
+  ${oni_vicon_recorder_HEADERS}
+)
 
 ## Declare a cpp executable
-# add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
+add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(oni_vicon_recorder_node oni_vicon_recorder_generate_messages_cpp)
 
+
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(oni_vicon_recorder_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(oni_vicon_recorder
+ "ViconDataStreamSDK_CPP"
+ ${catkin_LIBRARIES}
+ OpenNI
+ ${OpenCV_LIBS}
+ ${Boost_LIBRARIES}
+)
+
+target_link_libraries(oni_vicon_recorder_node
+ ${catkin_LIBRARIES}
+ oni_vicon_recorder
+ ${Boost_LIBRARIES}
+)
 
 #############
 ## Install ##
