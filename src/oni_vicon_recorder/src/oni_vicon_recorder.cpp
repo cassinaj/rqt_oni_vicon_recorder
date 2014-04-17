@@ -41,7 +41,6 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     result.vicon_frames = 0;
     result.kinect_frames = 0;
 
-    ROS_INFO_NAMED("OniViconRecorder", "ONI recorder");
     if(!oni_recorder_.startRecording(goal->destination + "/" + goal->name + ".oni"))
     {
         ROS_WARN("ONI recording aborted.");
