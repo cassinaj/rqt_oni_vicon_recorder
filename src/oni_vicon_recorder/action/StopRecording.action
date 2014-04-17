@@ -1,5 +1,0 @@
-bool stop
----
-bool stopped
----
-int32 status

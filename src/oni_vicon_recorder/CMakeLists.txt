@@ -4,11 +4,10 @@ project(oni_vicon_recorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs vicon_sdk)
+find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs actionlib)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-find_package(Boost EXACT 1.46.1 REQUIRED COMPONENTS system-mt thread-mt)
+find_package(Boost REQUIRED)
 find_package(OpenCV 3.0.0 REQUIRED)
 
 
@@ -56,15 +55,17 @@ add_service_files(
 
 ## Generate actions in the 'action' folder
 add_action_files(
+  DIRECTORY action
   FILES
-  StartRecording.action
-  StopRecording.action
+  Record.action
+  StartDepthSensor.action
+  CloseDepthSensor.action
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs actionlib_msgs
+  std_msgs actionlib_msgs std_msgs
 )
 
 ###################################
@@ -79,16 +80,18 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES oni_vicon_recorder
- CATKIN_DEPENDS actionlib_msgs
+ CATKIN_DEPENDS actionlib_msgs actionlib
  DEPENDS OpenNI Boost
 )
 
+###########
+## Build ##
+###########
 set(oni_vicon_recorder_SOURCES
   src/kinect.cc
   src/oni_recorder.cpp
   src/vicon_recorder.cpp
   src/oni_vicon_recorder.cpp
-  src/oni_vicon_recorder_node.cpp
 )
 
 set(oni_vicon_recorder_HEADERS
@@ -98,43 +101,25 @@ set(oni_vicon_recorder_HEADERS
   include/${PROJECT_NAME}/oni_vicon_recorder.hpp
 )
 
-include_directories(include "/usr/include/ni/") # FIXME superbly uggly
-
-###########
-## Build ##
-###########
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-# include_directories(include)
-
-## Declare a cpp library
-add_library(oni_vicon_recorder
-  ${oni_vicon_recorder_SOURCES}
-  ${oni_vicon_recorder_HEADERS}
+include_directories(include
+    ${catkin_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    "/usr/include/ni/" # FIXME superbly uggly
 )
 
-## Declare a cpp executable
-add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
-
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(oni_vicon_recorder_node oni_vicon_recorder_generate_messages_cpp)
-
-
-## Specify libraries to link a library or executable target against
+add_library(oni_vicon_recorder ${oni_vicon_recorder_SOURCES} ${oni_vicon_recorder_HEADERS})
 target_link_libraries(oni_vicon_recorder
- "ViconDataStreamSDK_CPP"
- ${catkin_LIBRARIES}
- OpenNI
- ${OpenCV_LIBS}
- ${Boost_LIBRARIES}
+    ${catkin_LIBRARIES}
+    "ViconDataStreamSDK_CPP"
+    OpenNI
+    ${OpenCV_LIBS}
+    ${Boost_LIBRARIES}
 )
 
+add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
 target_link_libraries(oni_vicon_recorder_node
- ${catkin_LIBRARIES}
- oni_vicon_recorder
- ${Boost_LIBRARIES}
+    oni_vicon_recorder
+    ${catkin_LIBRARIES}
 )
 
 #############

@@ -57,11 +57,11 @@ public:
     ViconRecorder(int float_precision = 5);
     ~ViconRecorder();
 
+
+
     std::ofstream& beginRecord(std::ofstream& ofs);
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
-
-
 
 private:
     int float_precision_;

@@ -1,0 +1,8 @@
+string destination
+string name
+---
+int32 vicon_frames
+int32 kinect_frames
+---
+int32 vicon_frames
+int32 kinect_frames

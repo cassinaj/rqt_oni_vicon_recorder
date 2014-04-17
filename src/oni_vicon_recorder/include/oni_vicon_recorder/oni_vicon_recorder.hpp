@@ -3,8 +3,12 @@
 #ifndef ONI_VICON_RECORDER_ONI_VICON_RECORDER_HPP
 #define ONI_VICON_RECORDER_ONI_VICON_RECORDER_HPP
 
+#include <string>
 
 #include <ros/ros.h>
+#include <actionlib/server/simple_action_server.h>
+
+#include <oni_vicon_recorder/RecordAction.h>
 
 #include "kinect.h"
 #include "oni_recorder.hpp"
@@ -14,8 +18,10 @@
 class OniViconRecorder
 {
 public:
-    OniViconRecorder(ros::NodeHandle& node_handler);
+    OniViconRecorder(std::string name, ros::NodeHandle& node_handle);
     ~OniViconRecorder();
+
+    void recordCB(const oni_vicon_recorder::RecordGoalConstPtr& goal);
 
     void run();
 
@@ -23,6 +29,8 @@ private:
     ros::NodeHandle node_handler_;
     OniRecorder oni_recorder_;
     ViconRecorder vicon_recorder_;
+
+    actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
 };
 
 #endif
