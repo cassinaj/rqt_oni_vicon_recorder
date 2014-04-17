@@ -58,8 +58,8 @@ add_action_files(
   DIRECTORY action
   FILES
   Record.action
-  StartDepthSensor.action
-  CloseDepthSensor.action
+  RunDepthSensor.action
+#  CloseDepthSensor.action
 )
 
 ## Generate added messages and services with any dependencies listed here

@@ -41,42 +41,46 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     result.vicon_frames = 0;
     result.kinect_frames = 0;
 
-//    if (!oni_recorder_.startDevice())
-//    {
-//        ROS_ERROR("ONI recording aborted. Cannot start depth sensor.");
-//        record_as_.setAborted(result);
-//        return;
-//    }
+    ROS_INFO_NAMED("OniViconRecorder", "ONI recorder");
+    if(!oni_recorder_.startRecording(goal->destination + "/" + goal->name + ".oni"))
+    {
+        ROS_WARN("ONI recording aborted.");
+        record_as_.setAborted(result);
+        return;
+    }
 
     feedback.vicon_frames = 0;
     feedback.kinect_frames = 0;
-    ros::Rate r(120);
-    for (int i = 0; i < 1200; i++)
+    ros::Rate r(30);
+    while (true)
     {
         if (record_as_.isPreemptRequested())
         {
             break;
         }
-        else if (!ros::ok())
+        else if (!oni_recorder_.isRecording()) // !ros::ok() ||
         {
-            ROS_INFO("ONI recording aborted");
-            result.vicon_frames = i;
-            result.kinect_frames = i/4;
+            ROS_WARN("ONI recording aborted");
+            result.vicon_frames = 0;
+            result.kinect_frames = oni_recorder_.countFrames();
             record_as_.setAborted(result);
-            oni_recorder_.closeDevice();
+            oni_recorder_.stopRecording();
             return;
         }
 
-        feedback.vicon_frames = i;
-        feedback.kinect_frames = i/4;
+        feedback.vicon_frames = 0;
+        feedback.kinect_frames = oni_recorder_.countFrames();
         record_as_.publishFeedback(feedback);
 
         r.sleep();
+
+        ROS_INFO("Check check check");
     }
 
     ROS_INFO("Stopping ONI recording");
-    result.vicon_frames = feedback.vicon_frames;
-    result.kinect_frames = feedback.kinect_frames;
-    record_as_.setSucceeded(result);
-    oni_recorder_.closeDevice();
+    oni_recorder_.stopRecording();
+
+    result.vicon_frames = 0;
+    result.kinect_frames = oni_recorder_.countFrames();
+    record_as_.setSucceeded(result);    
 }

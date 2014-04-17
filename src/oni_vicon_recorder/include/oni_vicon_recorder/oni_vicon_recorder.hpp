@@ -14,7 +14,6 @@
 #include "oni_recorder.hpp"
 #include "vicon_recorder.hpp"
 
-
 class OniViconRecorder
 {
 public:
