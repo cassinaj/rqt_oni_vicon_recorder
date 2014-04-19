@@ -87,7 +87,6 @@ using namespace xn;
 #define KINECT_RGB_TO_IR_PITCH_DEFAULT      0.0 // rad
 #define KINECT_RGB_TO_IR_YAW_DEFAULT        0.0 // rad
 
-
 #define KINECT_VENDOR_ID                    0x45e
 #define XTION_VENDOR_ID                     0x1d27
 

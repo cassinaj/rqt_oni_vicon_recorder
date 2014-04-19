@@ -10,6 +10,10 @@
 
 #include <vicon_sdk/vicon_client.h>
 
+#include <actionlib/server/simple_action_server.h>
+
+#include <oni_vicon_recorder/ConnectToViconAction.h>
+
 /**
  * @class ViconRecorder records a subset of the vicon data
  *
@@ -54,14 +58,14 @@
 class ViconRecorder
 {
 public:
-    ViconRecorder(int float_precision = 5);
+    ViconRecorder(ros::NodeHandle& node_handle, int float_precision = 5);
     ~ViconRecorder();
-
-
 
     std::ofstream& beginRecord(std::ofstream& ofs);
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
+
+    void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr &goal);
 
 private:
     int float_precision_;
@@ -72,6 +76,9 @@ private:
     bool connect_to_multicast_;
     bool multicast_enabled_;
     ViconDataStreamSDK::CPP::Client vicon_client_;
+
+    actionlib::SimpleActionServer<
+        oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
 };
 
 #endif

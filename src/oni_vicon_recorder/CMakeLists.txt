@@ -59,7 +59,8 @@ add_action_files(
   FILES
   Record.action
   RunDepthSensor.action
-#  CloseDepthSensor.action
+  ChangeDepthSensorMode.action
+  ConnectToVicon.action
 )
 
 ## Generate added messages and services with any dependencies listed here

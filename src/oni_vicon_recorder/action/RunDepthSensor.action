@@ -1,9 +1,7 @@
 
 ---
-
 ---
+string[] modes
+string mode
 string device_type
 string device_name
-int32 res_x
-int32 res_y
-int32 fps

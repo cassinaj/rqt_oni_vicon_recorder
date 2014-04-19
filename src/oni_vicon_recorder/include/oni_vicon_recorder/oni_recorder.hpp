@@ -4,6 +4,7 @@
 #define ONI_VICON_RECORDER_ONI_RECORDER_HPP
 
 #include <string>
+#include <map>
 
 #include <boost/thread/mutex.hpp>
 
@@ -11,6 +12,7 @@
 #include <actionlib/server/simple_action_server.h>
 
 #include <oni_vicon_recorder/RunDepthSensorAction.h>
+#include <oni_vicon_recorder/ChangeDepthSensorModeAction.h>
 
 #include "kinect.h"
 
@@ -36,8 +38,8 @@
 #define CHECK_RC(rc, what)									    \
 if (rc != XN_STATUS_OK)											\
 {																\
-    ROS_ERROR("%s failed: %s\n", what, xnGetStatusString(rc));		\
-    return false;													\
+    ROS_ERROR("%s failed: %s\n", what, xnGetStatusString(rc));  \
+    return false;												\
 }
 
 class OniRecorder
@@ -49,6 +51,7 @@ public:
     OniRecorder(ros::NodeHandle& node_handle);
     ~OniRecorder();
 
+    void changeDeptSensorModeCB(const oni_vicon_recorder::ChangeDepthSensorModeGoalConstPtr &goal);
     void runDepthSensorCB(const oni_vicon_recorder::RunDepthSensorGoalConstPtr& goal);
     bool closeDevice();
 
@@ -57,6 +60,12 @@ public:
     int countFrames();
     bool isRecording();
 
+
+    std::map<std::string, XnMapOutputMode> getSupportedModes(const DepthGenerator *generator);
+    std::vector<std::string> getSupportedModeList(const std::map<std::string, XnMapOutputMode>& mode_map);
+    XnMapOutputMode getCurrentMode(const DepthGenerator *generator) const;
+    std::string getModeName(const XnMapOutputMode& mode) const;
+
 private:
     ros::NodeHandle node_handle_;
     kinect_t* kinect_;
@@ -64,9 +73,13 @@ private:
     bool recording_;
     bool running_;
     int frames;
-    boost::shared_mutex frameLock;
+    boost::shared_mutex frameLock_;
+    std::map<std::string, XnMapOutputMode> modes_;
 
-    actionlib::SimpleActionServer<oni_vicon_recorder::RunDepthSensorAction> run_depth_sensor_as_;
+    actionlib::SimpleActionServer<
+        oni_vicon_recorder::RunDepthSensorAction> run_depth_sensor_as_;
+    actionlib::SimpleActionServer<
+        oni_vicon_recorder::ChangeDepthSensorModeAction> change_depth_sensor_mode_as_;
 };
 
 #endif
