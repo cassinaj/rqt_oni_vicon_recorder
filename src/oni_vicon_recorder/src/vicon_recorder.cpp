@@ -65,6 +65,10 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr &goal)
 
     while (true)
     {
+
+
+
+
         if (connect_to_vicon_as_.isPreemptRequested())
         {
             break;

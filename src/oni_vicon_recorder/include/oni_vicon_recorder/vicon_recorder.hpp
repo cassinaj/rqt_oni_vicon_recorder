@@ -65,7 +65,7 @@ public:
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
 
-    void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr &goal);
+    void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr& goal);
 
 private:
     int float_precision_;

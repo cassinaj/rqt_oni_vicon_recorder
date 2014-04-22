@@ -1,4 +1,7 @@
 int32 retry
+string host
+bool enable_multicast
+string muticast_address
 ---
 ---
 bool connected
