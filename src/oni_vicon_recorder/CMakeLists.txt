@@ -49,8 +49,9 @@ catkin_python_setup()
 
 ## Generate services in the 'srv' folder
 add_service_files(
+   DIRECTORY srv
    FILES
-   RecordingStatus.srv
+   ViconObjects.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -81,7 +82,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES oni_vicon_recorder
- CATKIN_DEPENDS actionlib_msgs actionlib
+ CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk
  DEPENDS OpenNI Boost
 )
 

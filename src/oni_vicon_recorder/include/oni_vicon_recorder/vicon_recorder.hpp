@@ -8,11 +8,14 @@
 #include <ctime>
 #include <iomanip>
 
+#include <boost/thread/shared_mutex.hpp>
+
 #include <vicon_sdk/vicon_client.h>
 
 #include <actionlib/server/simple_action_server.h>
 
 #include <oni_vicon_recorder/ConnectToViconAction.h>
+#include <oni_vicon_recorder/ViconObjects.h>
 
 /**
  * @class ViconRecorder records a subset of the vicon data
@@ -65,20 +68,29 @@ public:
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
 
+public: /* Action Callbacks */
     void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr& goal);
+
+public: /* Service Callbacks */
+    bool viconObjectsCB(oni_vicon_recorder::ViconObjects::Request& request,
+                        oni_vicon_recorder::ViconObjects::Response& response);
 
 private:
     int float_precision_;
+    bool connected_;
+    boost::shared_mutex iteration_mutex_;
 
     std::string hostname_;
     std::string multicast_address_;
     std::string object_;
     bool connect_to_multicast_;
     bool multicast_enabled_;
-    ViconDataStreamSDK::CPP::Client vicon_client_;
+    ViconDataStreamSDK::CPP::Client vicon_client_;    
 
     actionlib::SimpleActionServer<
         oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
+
+    ros::ServiceServer vicon_objects_srv_;
 };
 
 #endif
