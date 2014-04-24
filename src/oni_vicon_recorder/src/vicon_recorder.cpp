@@ -20,6 +20,10 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle, int float_precision):
     vicon_objects_srv_ = node_handle.advertiseService("detect_vicon_objects",
                                                       &ViconRecorder::viconObjectsCB,
                                                       this);
+
+    object_verification_srv_ = node_handle.advertiseService("object_exists_verification",
+                                                            &ViconRecorder::objectExistsCB,
+                                                            this);
 }
 
 ViconRecorder::~ViconRecorder()
@@ -107,6 +111,25 @@ bool ViconRecorder::viconObjectsCB(ViconObjects::Request& request, ViconObjects:
         response.object_names.push_back("object_2");
         response.object_names.push_back("object_3");
         response.object_names.push_back("object_4");
+    }
+
+    return true;
+}
+
+bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
+                                   VerifyObjectExists::Response& response)
+{
+    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    response.exists = false;
+
+    if (connected_)
+    {
+        if (request.object_name.compare("object_1") == 0)
+        {
+            response.exists = true;
+        }
     }
 
     return true;

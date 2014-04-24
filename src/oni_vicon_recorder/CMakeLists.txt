@@ -52,6 +52,7 @@ add_service_files(
    DIRECTORY srv
    FILES
    ViconObjects.srv
+   VerifyObjectExists.srv
 )
 
 ## Generate actions in the 'action' folder

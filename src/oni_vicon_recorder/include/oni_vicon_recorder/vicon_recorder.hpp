@@ -16,6 +16,8 @@
 
 #include <oni_vicon_recorder/ConnectToViconAction.h>
 #include <oni_vicon_recorder/ViconObjects.h>
+#include <oni_vicon_recorder/VerifyObjectExists.h>
+#include <oni_vicon_recorder/VerifyObjectExists.h>
 
 /**
  * @class ViconRecorder records a subset of the vicon data
@@ -74,6 +76,8 @@ public: /* Action Callbacks */
 public: /* Service Callbacks */
     bool viconObjectsCB(oni_vicon_recorder::ViconObjects::Request& request,
                         oni_vicon_recorder::ViconObjects::Response& response);
+    bool objectExistsCB(oni_vicon_recorder::VerifyObjectExists::Request& request,
+                        oni_vicon_recorder::VerifyObjectExists::Response& response);
 
 private:
     int float_precision_;
@@ -91,6 +95,7 @@ private:
         oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
 
     ros::ServiceServer vicon_objects_srv_;
+    ros::ServiceServer object_verification_srv_;
 };
 
 #endif
