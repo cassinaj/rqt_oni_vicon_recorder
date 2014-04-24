@@ -29,7 +29,6 @@ void OniViconRecorder::run()
     ROS_INFO("Shutting down OniViconRecorder");
 }
 
-
 void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
 {
     ROS_INFO("Start ONI recording");
@@ -49,9 +48,13 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
         return;
     }
 
+    feedback.duration = 0;
     feedback.vicon_frames = 0;
     feedback.kinect_frames = 0;
     ros::Rate r(30);
+
+    gettimeofday(&starting_time_, NULL);
+
     while (true)
     {
         if (record_as_.isPreemptRequested())
@@ -68,6 +71,7 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
             return;
         }
 
+        feedback.duration = duration();
         feedback.vicon_frames = 0;
         feedback.kinect_frames = oni_recorder_.countFrames();
         record_as_.publishFeedback(feedback);
@@ -83,4 +87,22 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     result.vicon_frames = 0;
     result.kinect_frames = oni_recorder_.countFrames();
     record_as_.setSucceeded(result);    
+}
+
+u_int64_t OniViconRecorder::duration()
+{
+    timeval current_time;
+
+    gettimeofday(&current_time, NULL);
+
+    int secs(current_time.tv_sec - starting_time_.tv_sec);
+    int usecs(current_time.tv_usec - starting_time_.tv_usec);
+
+    if(usecs < 0)
+    {
+        --secs;
+        usecs += 1000000;
+    }
+
+    return static_cast<u_int64_t>(secs * 1000 + usecs / 1000.0);
 }
