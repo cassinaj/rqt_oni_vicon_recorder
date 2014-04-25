@@ -8,6 +8,7 @@ OniViconRecorder::OniViconRecorder(std::string name, ros::NodeHandle& node_handl
     node_handler_(node_handle),
     oni_recorder_(node_handle),
     vicon_recorder_(node_handle),
+    global_calibration_(node_handle),
     record_as_(node_handle, "start_" + name, boost::bind(&OniViconRecorder::recordCB, this, _1), false)
 {
 

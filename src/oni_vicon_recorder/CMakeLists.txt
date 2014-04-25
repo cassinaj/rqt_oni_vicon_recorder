@@ -4,7 +4,14 @@ project(oni_vicon_recorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs actionlib rgbd_sensor vicon_sdk)
+find_package(catkin REQUIRED roscpp
+                             std_msgs
+                             message_generation
+                             actionlib_msgs
+                             actionlib
+                             rgbd_sensor
+                             vicon_sdk
+                             depth_sensor_vicon_calibration)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)

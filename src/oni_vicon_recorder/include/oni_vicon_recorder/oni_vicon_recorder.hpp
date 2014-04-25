@@ -12,6 +12,8 @@
 
 #include <oni_vicon_recorder/RecordAction.h>
 
+#include <depth_sensor_vicon_calibration/depth_sensor_vicon_calibration.hpp>
+
 #include "kinect.h"
 #include "oni_recorder.hpp"
 #include "vicon_recorder.hpp"
@@ -33,6 +35,7 @@ private:
     ros::NodeHandle node_handler_;
     OniRecorder oni_recorder_;
     ViconRecorder vicon_recorder_;
+    depth_sensor_vicon_calibration::Calibration global_calibration_;
 
     actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
 

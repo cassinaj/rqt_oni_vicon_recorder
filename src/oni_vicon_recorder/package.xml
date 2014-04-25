@@ -63,6 +63,10 @@
   <build_depend>rgbd_sensor</build_depend>
   <run_depend>rgbd_sensor</run_depend>
 
+  <build_depend>depth_sensor_vicon_calibration</build_depend>
+  <run_depend>depth_sensor_vicon_calibration</run_depend>
+
+
   <!-- <build_depend>arm_rgbd</build_depend> -->
 
   <!-- The export tag contains other, unspecified, tags -->
