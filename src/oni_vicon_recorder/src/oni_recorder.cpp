@@ -7,7 +7,6 @@ using namespace oni_vicon_recorder;
 
 OniRecorder::OniRecorder(ros::NodeHandle &node_handle):
     node_handle_(node_handle),
-    kinect_(NULL),
     recording_(false),
     running_(false),
     run_depth_sensor_as_(node_handle,
@@ -31,7 +30,8 @@ OniRecorder::~OniRecorder()
 void OniRecorder::changeDeptSensorModeCB(
         const oni_vicon_recorder::ChangeDepthSensorModeGoalConstPtr& goal)
 {
-    ChangeDepthSensorModeResult result;
+    ChangeDepthSensorModeResult result;    
+
     if (running_)
     {
         if (!recording_)
@@ -41,7 +41,18 @@ void OniRecorder::changeDeptSensorModeCB(
                 boost::upgrade_lock<boost::shared_mutex> lock(frameLock_);
                 boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
 
-                kinect_->g_depth->SetMapOutputMode(modes_[goal->mode]);
+                XnMapOutputMode currentMode;
+                rgbd_capture_.device()->g_depth->GetMapOutputMode(currentMode);
+
+                if (currentMode.nXRes != modes_[goal->mode].nXRes)
+                {
+                    result.message = "Changeing resolution while publishing pointcloud not supported.";
+                    change_depth_sensor_mode_as_.setAborted(result);
+                    ROS_WARN("%s", result.message.c_str());
+                    return;
+                }
+
+                rgbd_capture_.device()->g_depth->SetMapOutputMode(modes_[goal->mode]);
                 result.message = "Depth sensor mode changed to: " + goal->mode;
                 change_depth_sensor_mode_as_.setSucceeded(result);
                 ROS_INFO("%s", result.message.c_str());
@@ -73,11 +84,8 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
     RunDepthSensorFeedback feedback;
     RunDepthSensorResult result;
 
-    kinect_ = kinect_alloc();
-
-    if(kinect_init_and_start(kinect_, false, false, false) != 0)
+    if(!rgbd_capture_.initDevice())
     {
-        kinect_free(kinect_);        
         run_depth_sensor_as_.setAborted(result);
 
         ROS_INFO("Cannot start depth sensor");
@@ -86,32 +94,15 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
 
     ROS_INFO("Depth sensor started");    
 
-    // setting parameters
-    kinect_params_t params;
-    params.rgb_focal_length    = KINECT_RGB_FOCAL_LENGTH_DEFAULT;
-    params.ir_focal_length     = KINECT_IR_FOCAL_LENGTH_DEFAULT;
-    params.ir_camera_center.x  = KINECT_IR_CENTER_COL_DEFAULT;
-    params.ir_camera_center.y  = KINECT_IR_CENTER_ROW_DEFAULT;
-    params.rgb_camera_center.x = KINECT_RGB_CENTER_COL_DEFAULT;
-    params.rgb_camera_center.y = KINECT_RGB_CENTER_ROW_DEFAULT;
-    kinect_set_transform( KINECT_RGB_TO_IR_X_DEFAULT,
-                          KINECT_RGB_TO_IR_Y_DEFAULT,
-                          KINECT_RGB_TO_IR_Z_DEFAULT,
-                          KINECT_RGB_TO_IR_ROLL_DEFAULT,
-                          KINECT_RGB_TO_IR_PITCH_DEFAULT,
-                          KINECT_RGB_TO_IR_YAW_DEFAULT,
-                          params.rgb_to_ir);
-    kinect_set_params(kinect_, params);
-
     if (modes_.empty())
     {
         // calling this more than once causes a segmentation fault
-        modes_ = getSupportedModes(kinect_->g_depth);
+        modes_ = getSupportedModes(rgbd_capture_.device()->g_depth);
     }
 
-    feedback.device_type = kinect_->vendor_id == XTION_VENDOR_ID ? "XTION": "Kinect";
-    feedback.device_name = kinect_->device_name;    
-    feedback.mode = getModeName(getCurrentMode(kinect_->g_depth));
+    feedback.device_type = rgbd_capture_.device()->vendor_id == XTION_VENDOR_ID ? "XTION": "Kinect";
+    feedback.device_name = rgbd_capture_.device()->device_name;
+    feedback.mode = getModeName(getCurrentMode(rgbd_capture_.device()->g_depth));
     feedback.modes = getSupportedModeList(modes_);
     run_depth_sensor_as_.publishFeedback(feedback);    
 
@@ -134,7 +125,7 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
             return;
         }
 
-        if(kinect_capture(kinect_) != 0)
+        if(!rgbd_capture_.process())
         {
             ROS_ERROR("Running depth sensor aborted. Error during capture.");
             closeDevice();
@@ -159,8 +150,7 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
 
 bool OniRecorder::closeDevice()
 {
-    kinect_close(kinect_);
-    kinect_free(kinect_);
+    rgbd_capture_.closeCamera();
 
     ROS_INFO("Depth sensor closed");
 }
@@ -181,13 +171,13 @@ bool OniRecorder::startRecording(std::string destinationFile)
     ROS_INFO("Starting ONI recording");
     ROS_INFO(" - output file: %s", destinationFile.c_str());
 
-    CHECK_RC(recorder_.Create(*kinect_->g_context),
+    CHECK_RC(recorder_.Create(*rgbd_capture_.device()->g_context),
              "Create NX Recorder");
 
     CHECK_RC(recorder_.SetDestination(XN_RECORD_MEDIUM_FILE, destinationFile.c_str()),
              "Set recorder destination file");
 
-    CHECK_RC(recorder_.AddNodeToRecording(*kinect_->g_depth),
+    CHECK_RC(recorder_.AddNodeToRecording(*rgbd_capture_.device()->g_depth),
              "Add depth generator node to recording");
 
     recording_ = true;
@@ -209,7 +199,7 @@ bool OniRecorder::stopRecording()
         return false;
     }
 
-    CHECK_RC(recorder_.RemoveNodeFromRecording(*kinect_->g_depth),
+    CHECK_RC(recorder_.RemoveNodeFromRecording(*rgbd_capture_.device()->g_depth),
              "Remove depth generator node from recording");
 
     recorder_.Release();

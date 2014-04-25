@@ -4,7 +4,7 @@ project(oni_vicon_recorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs actionlib)
+find_package(catkin REQUIRED roscpp std_msgs message_generation actionlib_msgs actionlib rgbd_sensor vicon_sdk)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
@@ -83,7 +83,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES oni_vicon_recorder
- CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk
+ CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk rgbd_sensor
  DEPENDS OpenNI Boost
 )
 
@@ -117,6 +117,7 @@ target_link_libraries(oni_vicon_recorder
     OpenNI
     ${OpenCV_LIBS}
     ${Boost_LIBRARIES}
+    yaml-cpp
 )
 
 add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)

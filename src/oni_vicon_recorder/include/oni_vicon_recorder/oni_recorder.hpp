@@ -24,7 +24,8 @@
 #include <oni_vicon_recorder/RunDepthSensorAction.h>
 #include <oni_vicon_recorder/ChangeDepthSensorModeAction.h>
 
-#include "kinect.h"
+#include <rgbd_sensor/kinect.h>
+#include <rgbd_sensor/rgbd_sensor.h>
 
 #define KINECT_IMAGE_COLS       640
 #define KINECT_IMAGE_ROWS       480
@@ -55,9 +56,6 @@ if (rc != XN_STATUS_OK)											\
 class OniRecorder
 {
 public:
-
-
-public:
     OniRecorder(ros::NodeHandle& node_handle);
     ~OniRecorder();
 
@@ -78,7 +76,7 @@ public:
 
 private:
     ros::NodeHandle node_handle_;
-    kinect_t* kinect_;
+    RgbdCapture rgbd_capture_;
     Recorder recorder_;
     bool recording_;
     bool running_;
@@ -90,52 +88,6 @@ private:
         oni_vicon_recorder::RunDepthSensorAction> run_depth_sensor_as_;
     actionlib::SimpleActionServer<
         oni_vicon_recorder::ChangeDepthSensorModeAction> change_depth_sensor_mode_as_;
-
-    image_transport::ImageTransport* it_;
-    std::string camera_name_;
-    std::string frame_id_;
-    sensor_msgs::Image gray_image_;
-    sensor_msgs::CameraInfo depth_cam_info_;
-
-    std::string calib_url_;
-
-    // Standard parameters
-    bool bus_reset_;
-    std::string bayer_pattern_;
-    std::string encoding_;
-    std::string guid_;
-    int iso_speed_;
-    std::string video_mode_;
-
-    inline bool isDepthStreamRequired() const;
-
-    sensor_msgs::CameraInfoPtr fillCameraInfo (ros::Time time, bool is_rgb);
-    void subscriberChangedEvent ();
-
-    bool calibration_valid_;
-    bool calibration_loaded_;
-
-    // Publishers Camera Info
-    ros::Publisher pub_depth_info_;
-    // Publishers Images
-    image_transport::Publisher pub_gray_image_;
-    image_transport::Publisher pub_depth_image_;
-    // Publishers Point Clouds
-    ros::Publisher pub_disp_image_;
-    ros::Publisher pub_point_cloud_;
-    ros::Publisher pub_point_cloud_rgb_;
-
-    // publish methods
-    void publishGrayImage (ros::Time time);
-    void publishDepthImage (ros::Time time);
-    void publishDisparity (ros::Time time);
-    void publishXYZPointCloud (ros::Time time);
-
-    std::string depth_frame_id_;
-    unsigned image_width_;
-    unsigned image_height_;
-    unsigned depth_width_;
-    unsigned depth_height_;
 };
 
 #endif
