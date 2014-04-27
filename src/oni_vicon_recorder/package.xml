@@ -66,6 +66,11 @@
   <build_depend>depth_sensor_vicon_calibration</build_depend>
   <run_depend>depth_sensor_vicon_calibration</run_depend>
 
+  <build_depend>PCL</build_depend>
+  <run_depend>PCL</run_depend>
+
+  <build_depend>simple_object_tracker</build_depend>
+  <run_depend>simple_object_tracker</run_depend>
 
   <!-- <build_depend>arm_rgbd</build_depend> -->
 
