@@ -11,7 +11,6 @@ find_package(catkin REQUIRED
     vicon_sdk
     depth_sensor_vicon_calibration)
 
-## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
