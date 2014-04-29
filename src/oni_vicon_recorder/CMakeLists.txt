@@ -4,22 +4,22 @@ project(oni_vicon_recorder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp
-                             std_msgs
-                             message_generation
-                             actionlib_msgs
-                             actionlib
-                             rgbd_sensor
-                             vicon_sdk
-                             depth_sensor_vicon_calibration
-                             simple_object_tracker)
+find_package(catkin REQUIRED
+    roscpp
+    std_msgs
+    message_generation
+    actionlib_msgs
+    actionlib
+    rgbd_sensor
+    vicon_sdk
+    depth_sensor_vicon_calibration)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
-find_package(OpenCV 3.0.0 REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
-find_package(PCL 1.3 REQUIRED)
-include_directories(${PCL_INCLUDE_DIRS})
+#find_package(PCL 1.3 REQUIRED)
+#include_directories(${PCL_INCLUDE_DIRS})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -93,8 +93,8 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES oni_vicon_recorder
- CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk rgbd_sensor depth_sensor_vicon_calibration simple_object_tracker
- DEPENDS OpenNI Boost
+ CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk rgbd_sensor depth_sensor_vicon_calibration
+ DEPENDS OpenNI
 )
 
 ###########
