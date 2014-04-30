@@ -46,7 +46,7 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
     int retries = goal->retry;
 
     ros::Duration wait_time(1.);
-    while (retries > 0 && !vicon_client_.IsConnected().Connected)
+    while (retries >= 0 && !vicon_client_.IsConnected().Connected)
     {
         if(connect_to_multicast_)
         {
@@ -69,9 +69,16 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
 
         retries--;
 
-        if (retries > 0)
+        if (retries >= 0)
         {
             ROS_INFO("No connecting to Vicon system. Retry %d ...", (goal->retry - retries));
+        }
+
+        if (connect_to_vicon_as_.isPreemptRequested() || !ros::ok())
+        {
+            ROS_INFO("Connecting to Vicon System aborted.");
+            connect_to_vicon_as_.setAborted(result);
+            return;
         }
 
         wait_time.sleep();

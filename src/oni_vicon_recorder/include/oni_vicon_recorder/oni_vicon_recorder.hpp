@@ -34,7 +34,7 @@ private:
 private:
     ros::NodeHandle node_handler_;
     OniRecorder oni_recorder_;
-    ViconRecorderStub vicon_recorder_;
+    ViconRecorder vicon_recorder_;
     depth_sensor_vicon_calibration::Calibration global_calibration_;
 
     actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
