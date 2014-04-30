@@ -1,7 +1,9 @@
 int32 retry
 string host
 bool enable_multicast
+bool connect_to_multicast
 string multicast_address
 ---
+bool connected
 ---
 bool connected

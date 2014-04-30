@@ -60,6 +60,38 @@
  *  - (double) Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 2 ]
  *  "\n"
  */
+class ViconRecorderStub
+{
+public:
+    ViconRecorderStub(ros::NodeHandle& node_handle, int float_precision = 5);
+    ~ViconRecorderStub();
+
+public: /* Action Callbacks */
+    void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr& goal);
+
+public: /* Service Callbacks */
+    bool viconObjectsCB(oni_vicon_recorder::ViconObjects::Request& request,
+                        oni_vicon_recorder::ViconObjects::Response& response);
+    bool objectExistsCB(oni_vicon_recorder::VerifyObjectExists::Request& request,
+                        oni_vicon_recorder::VerifyObjectExists::Response& response);
+private:
+    int float_precision_;
+    bool connected_;
+    boost::shared_mutex iteration_mutex_;
+
+    std::string hostname_;
+    std::string multicast_address_;
+    std::string object_;
+    bool connect_to_multicast_;
+    bool multicast_enabled_;
+
+    actionlib::SimpleActionServer<
+        oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
+
+    ros::ServiceServer vicon_objects_srv_;
+    ros::ServiceServer object_verification_srv_;
+};
+
 class ViconRecorder
 {
 public:
@@ -69,6 +101,9 @@ public:
     std::ofstream& beginRecord(std::ofstream& ofs);
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
+
+    void record_stuff();
+
 
 public: /* Action Callbacks */
     void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr& goal);
@@ -80,6 +115,12 @@ public: /* Service Callbacks */
                         oni_vicon_recorder::VerifyObjectExists::Response& response);
 
 private:
+    std::string Adapt(const bool i_Value );
+    std::string Adapt(const ViconDataStreamSDK::CPP::Direction::Enum i_Direction);
+    std::string Adapt(const ViconDataStreamSDK::CPP::DeviceType::Enum i_DeviceType);
+    std::string Adapt(const ViconDataStreamSDK::CPP::Unit::Enum i_Unit);
+
+private:
     int float_precision_;
     bool connected_;
     boost::shared_mutex iteration_mutex_;
@@ -89,7 +130,7 @@ private:
     std::string object_;
     bool connect_to_multicast_;
     bool multicast_enabled_;
-    ViconDataStreamSDK::CPP::Client vicon_client_;    
+    ViconDataStreamSDK::CPP::Client vicon_client_;
 
     actionlib::SimpleActionServer<
         oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
@@ -97,5 +138,6 @@ private:
     ros::ServiceServer vicon_objects_srv_;
     ros::ServiceServer object_verification_srv_;
 };
+
 
 #endif
