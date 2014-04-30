@@ -46,19 +46,19 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
     int retries = goal->retry;
 
     ros::Duration wait_time(1.);
-    while (retries > 0 && !vicon_client_.IsConnected())
+    while (retries > 0 && !vicon_client_.IsConnected().Connected)
     {
         if(connect_to_multicast_)
         {
             ROS_INFO("Connecting to Vicon %s, multicast %s ... ",
-                     hostname_, goal->multicast_address.c_str());
+                     hostname_.c_str(), goal->multicast_address.c_str());
             connected_ = (vicon_client_.ConnectToMulticast(
                       hostname_, multicast_address_).Result == Result::Success);
 
         }
         else
         {
-            ROS_INFO("Connecting to Vicon %s ... ", hostname_);
+            ROS_INFO("Connecting to Vicon %s ... ", hostname_.c_str());
             connected_ = (vicon_client_.Connect( hostname_ ).Result == Result::Success);
         }
 
