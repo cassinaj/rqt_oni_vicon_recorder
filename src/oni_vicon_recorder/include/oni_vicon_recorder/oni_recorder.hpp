@@ -80,7 +80,7 @@ private:
     Recorder recorder_;
     bool recording_;
     bool running_;
-    int frames;
+    long unsigned int frames_;
     boost::shared_mutex frameLock_;
     std::map<std::string, XnMapOutputMode> modes_;
 
