@@ -7,6 +7,8 @@ using namespace ViconDataStreamSDK::CPP;
 ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle, int float_precision):
     float_precision_(float_precision),
     connected_(false),
+    recording_(false),
+    frames_(0),
     hostname_("localhost:801"),
     multicast_address_("244.0.0.0:44801"),
     connect_to_multicast_(false),
@@ -32,6 +34,92 @@ ViconRecorder::~ViconRecorder()
 
 }
 
+bool ViconRecorder::startRecording(const std::string& file, const std::string& object_name)
+{
+    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    if (!connected_)
+    {
+        ROS_WARN("Cannot start recording. Not connected to Vicon system.");
+        return false;
+    }
+
+    if(!file.empty())
+    {
+        ofs_.open(file.c_str());
+        if(!ofs_.is_open())
+        {
+            ROS_WARN("Could not create or open file %s", file.c_str());
+            return false;
+        }
+    }
+
+    object_name_ = object_name;
+
+    recording_ = true;
+    frames_ = 0;
+
+    ROS_INFO("Vicon data recording started");
+
+    return true;
+}
+
+bool ViconRecorder::stopRecording()
+{
+    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    if(ofs_.is_open())
+    {
+        ofs_.close();
+    }
+
+    if (!recording_)
+    {
+        ROS_WARN("No Vicon data recording to stop.");
+        return false;
+    }
+
+    recording_ = false;
+}
+
+long unsigned int ViconRecorder::countFrames()
+{
+    // boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    // boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    return frames_;
+}
+
+bool ViconRecorder::isRecording()
+{
+    // boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    // boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    return recording_;
+}
+
+void ViconRecorder::closeConnection()
+{
+    boost::shared_lock<boost::shared_mutex> lock(iteration_mutex_);
+
+    // disconnect from vicon
+    if(multicast_enabled_)
+    {
+        vicon_client_.StopTransmittingMulticast();
+    }
+
+    vicon_client_.DisableSegmentData();
+    vicon_client_.DisableMarkerData();
+    vicon_client_.DisableUnlabeledMarkerData();
+    vicon_client_.DisableDeviceData();
+    vicon_client_.Disconnect();
+
+    connected_ = false;
+    recording_ = false;
+}
+
 void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
 {
     ConnectToViconFeedback feedback;
@@ -39,12 +127,20 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
 
     ROS_INFO("Connecting to Vicon");
 
+    if (vicon_client_.IsConnected().Connected)
+    {
+        ROS_INFO("Already connected to Vicon System.");
+        connect_to_vicon_as_.setAborted(result);
+        return;
+    }
+
     hostname_ = goal->host;
     multicast_enabled_ = goal->enable_multicast;
     multicast_address_ = goal->multicast_address;
     connect_to_multicast_ = goal->connect_to_multicast;
     int retries = goal->retry;
 
+    // connect to vicon
     ros::Duration wait_time(1.);
     while (retries >= 0 && !vicon_client_.IsConnected().Connected)
     {
@@ -95,38 +191,54 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
         return;
     }
 
+    // Enable some different data types
+    vicon_client_.EnableSegmentData();
+    vicon_client_.EnableMarkerData();
+    vicon_client_.EnableUnlabeledMarkerData();
+    vicon_client_.EnableDeviceData();
+    vicon_client_.SetStreamMode(ViconDataStreamSDK::CPP::StreamMode::ClientPull);
+    vicon_client_.SetAxisMapping( Direction::Forward, Direction::Left, Direction::Up); // Z-up
+
+    if(multicast_enabled_)
+    {
+        vicon_client_.StartTransmittingMulticast(hostname_, multicast_address_);
+    }
+
     ROS_INFO("Connected to Vicon System.");
 
-    ros::Rate check_rate(100);
-    while (true)
+    ros::Rate check_rate(1000);
+    while (!connect_to_vicon_as_.isPreemptRequested() && ros::ok())
     {
         boost::shared_lock<boost::shared_mutex> lock(iteration_mutex_);
 
-        if (connect_to_vicon_as_.isPreemptRequested() || !ros::ok())
+        if (recording_ && vicon_client_.GetFrame().Result == Result::Success)
         {
-            break;
+            if (!recordFrame())
+            {
+                connected_ = false;
+                connect_to_vicon_as_.setAborted(result);
+                closeConnection();
+                ROS_ERROR("Recording vicon data frame failed. CLosing connection.");
+                return;
+            }
         }
-
-        check_rate.sleep();
+        else
+        {
+            check_rate.sleep();
+        }
     }
 
-    connected_ = false;
-    connect_to_vicon_as_.setSucceeded(result);
+    closeConnection();
     ROS_INFO("Vicon connection closed.");
+    connect_to_vicon_as_.setSucceeded(result);
 }
 
 bool ViconRecorder::viconObjectsCB(ViconObjects::Request& request, ViconObjects::Response& response)
 {
-    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
-    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+    std::set<std::string> objects = getViconObject();
+    std::copy(objects.begin(), objects.end(), std::back_inserter(response.object_names));
 
-    if(connected_)
-    {
-        response.object_names.push_back("object_1");
-        response.object_names.push_back("object_2");
-        response.object_names.push_back("object_3");
-        response.object_names.push_back("object_4");
-    }
+    ROS_INFO("Vicon objects requested. Found %lu objects.", objects.size());
 
     return true;
 }
@@ -134,23 +246,142 @@ bool ViconRecorder::viconObjectsCB(ViconObjects::Request& request, ViconObjects:
 bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
                                    VerifyObjectExists::Response& response)
 {
-    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
-    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
-
-    response.exists = false;
-
-    if (connected_)
-    {
-        if (request.object_name.compare("object_1") == 0)
-        {
-            response.exists = true;
-        }
-    }
+    std::set<std::string> objects = getViconObject();
+    response.exists = objects.find(request.object_name) != objects.end();
 
     return true;
 }
 
 
+std::set<std::string> ViconRecorder::getViconObject()
+{
+    std::set<std::string> objects;
+
+    boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
+    if(connected_)
+    {
+        // acquire a frame
+        int wait_time = 1.; // sec
+        ros::Rate check_rate(100);
+        wait_time *= 100;
+        while(vicon_client_.GetFrame().Result != Result::Success && wait_time > 0)
+        {
+            if (--wait_time == 0)
+            {
+                //time out and no frame has been acquired
+                return objects;
+            }
+
+            check_rate.sleep();
+        }
+        unsigned int subject_count = vicon_client_.GetSubjectCount().SubjectCount;
+
+        for(unsigned int i = 0; i < subject_count; ++i)
+        {
+            std::string subject_name = vicon_client_.GetSubjectName(i).SubjectName;
+            objects.insert(subject_name);
+        }
+    }
+
+    return objects;
+}
+
+bool ViconRecorder::recordFrame()
+{
+
+    // Get the frame number
+    Output_GetFrameNumber _Output_GetFrameNumber = vicon_client_.GetFrameNumber();
+    beginRecord(ofs_) << _Output_GetFrameNumber.FrameNumber;
+
+    // Get the timecode
+    Output_GetTimecode _Output_GetTimecode  = vicon_client_.GetTimecode();
+
+    record(ofs_) << _Output_GetTimecode.Hours;
+    record(ofs_) << _Output_GetTimecode.Minutes;
+    record(ofs_) << _Output_GetTimecode.Seconds;
+    record(ofs_) << _Output_GetTimecode.Frames;
+    record(ofs_) << _Output_GetTimecode.SubFrame;
+    record(ofs_) << _Output_GetTimecode.Standard;
+    record(ofs_) << _Output_GetTimecode.SubFramesPerFrame;
+    record(ofs_) << _Output_GetTimecode.UserBits;
+
+    // Get the latency
+    record(ofs_) << vicon_client_.GetLatencyTotal().Total;
+
+    bool objectExists = false;
+    unsigned int SubjectCount = vicon_client_.GetSubjectCount().SubjectCount;
+    for(unsigned int i = 0 ; i < SubjectCount ; ++i)
+    {
+        // Get the subject name
+        std::string object_name = vicon_client_.GetSubjectName(i).SubjectName;
+        if (object_name.compare(object_name_) != 0)
+        {
+            continue;
+        }
+
+        // Count the number of segments
+        unsigned int segment_count = vicon_client_.GetSegmentCount(object_name).SegmentCount;
+        for(unsigned int j = 0 ; j < segment_count ; ++j)
+        {
+            // Get the segment name
+            std::string SegmentName = vicon_client_.GetSegmentName(object_name, j).SegmentName;
+            if (SegmentName.compare(object_name_) != 0)
+            {
+                continue;
+            }
+            objectExists = true;
+
+            // Get the global segment translation
+            Output_GetSegmentGlobalTranslation _Output_GetSegmentGlobalTranslation =
+                    vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
+            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 0 ];
+            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 1 ];
+            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 2 ];
+
+            // Get the global segment rotation as a matrix
+            Output_GetSegmentGlobalRotationMatrix _Output_GetSegmentGlobalRotationMatrix =
+                    vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 0 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 1 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 2 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 3 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 4 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 5 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 6 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 7 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ];
+
+            // Get the global segment rotation in quaternion co-ordinates
+            Output_GetSegmentGlobalRotationQuaternion _Output_GetSegmentGlobalRotationQuaternion =
+                    vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
+            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 0 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 1 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 2 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 3 ];
+
+            // Get the global segment rotation in EulerXYZ co-ordinates
+            Output_GetSegmentGlobalRotationEulerXYZ _Output_GetSegmentGlobalRotationEulerXYZ =
+                    vicon_client_.GetSegmentGlobalRotationEulerXYZ( object_name, SegmentName );
+            record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 0 ];
+            record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 1 ];
+            endRecord(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 2 ];
+
+            break;
+        }
+    }
+
+    if (!objectExists)
+    {
+        ROS_WARN("Error: Object <%s> does not exist.", object_name_.c_str());
+        return false;
+    }
+
+    frames_++;
+
+    return true;
+}
 
 std::ofstream& ViconRecorder::beginRecord(std::ofstream& ofs)
 {
@@ -181,131 +412,6 @@ std::ofstream& ViconRecorder::endRecord(std::ofstream& ofs)
 {
     return record(ofs);
 }
-
-void ViconRecorder::record_stuff()
-{
-
-}
-
-std::string ViconRecorder::Adapt( const bool i_Value )
-{
-    return i_Value ? "True" : "False";
-}
-
-std::string ViconRecorder::Adapt( const Direction::Enum i_Direction )
-{
-    switch( i_Direction )
-    {
-    case Direction::Forward:
-        return "Forward";
-    case Direction::Backward:
-        return "Backward";
-    case Direction::Left:
-        return "Left";
-    case Direction::Right:
-        return "Right";
-    case Direction::Up:
-        return "Up";
-    case Direction::Down:
-        return "Down";
-    default:
-        return "Unknown";
-    }
-}
-
-std::string ViconRecorder::Adapt( const DeviceType::Enum i_DeviceType )
-{
-    switch( i_DeviceType )
-    {
-    case DeviceType::ForcePlate:
-        return "ForcePlate";
-    case DeviceType::Unknown:
-    default:
-        return "Unknown";
-    }
-}
-
-std::string ViconRecorder::Adapt( const Unit::Enum i_Unit )
-{
-    switch( i_Unit )
-    {
-    case Unit::Meter:
-        return "Meter";
-    case Unit::Volt:
-        return "Volt";
-    case Unit::NewtonMeter:
-        return "NewtonMeter";
-    case Unit::Newton:
-        return "Newton";
-    case Unit::Kilogram:
-        return "Kilogram";
-    case Unit::Second:
-        return "Second";
-    case Unit::Ampere:
-        return "Ampere";
-    case Unit::Kelvin:
-        return "Kelvin";
-    case Unit::Mole:
-        return "Mole";
-    case Unit::Candela:
-        return "Candela";
-    case Unit::Radian:
-        return "Radian";
-    case Unit::Steradian:
-        return "Steradian";
-    case Unit::MeterSquared:
-        return "MeterSquared";
-    case Unit::MeterCubed:
-        return "MeterCubed";
-    case Unit::MeterPerSecond:
-        return "MeterPerSecond";
-    case Unit::MeterPerSecondSquared:
-        return "MeterPerSecondSquared";
-    case Unit::RadianPerSecond:
-        return "RadianPerSecond";
-    case Unit::RadianPerSecondSquared:
-        return "RadianPerSecondSquared";
-    case Unit::Hertz:
-        return "Hertz";
-    case Unit::Joule:
-        return "Joule";
-    case Unit::Watt:
-        return "Watt";
-    case Unit::Pascal:
-        return "Pascal";
-    case Unit::Lumen:
-        return "Lumen";
-    case Unit::Lux:
-        return "Lux";
-    case Unit::Coulomb:
-        return "Coulomb";
-    case Unit::Ohm:
-        return "Ohm";
-    case Unit::Farad:
-        return "Farad";
-    case Unit::Weber:
-        return "Weber";
-    case Unit::Tesla:
-        return "Tesla";
-    case Unit::Henry:
-        return "Henry";
-    case Unit::Siemens:
-        return "Siemens";
-    case Unit::Becquerel:
-        return "Becquerel";
-    case Unit::Gray:
-        return "Gray";
-    case Unit::Sievert:
-        return "Sievert";
-    case Unit::Katal:
-        return "Katal";
-
-    case Unit::Unknown:
-    default:
-        return "Unknown";
-    }
-}
-
 
 // ============================================================================================== //
 // == STUB ====================================================================================== //

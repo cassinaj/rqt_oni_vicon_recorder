@@ -7,6 +7,8 @@
 #include <cassert>
 #include <ctime>
 #include <iomanip>
+#include <set>
+#include <vector>
 
 #include <boost/thread/shared_mutex.hpp>
 
@@ -98,6 +100,12 @@ public:
     ViconRecorder(ros::NodeHandle& node_handle, int float_precision = 5);
     ~ViconRecorder();
 
+    bool startRecording(const std::string& file, const std::string& object_name);
+    bool stopRecording();
+    unsigned long countFrames();
+    bool isRecording();
+    void closeConnection();
+
     std::ofstream& beginRecord(std::ofstream& ofs);
     std::ofstream& record(std::ofstream& ofs);
     std::ofstream& endRecord(std::ofstream& ofs);
@@ -115,15 +123,26 @@ public: /* Service Callbacks */
                         oni_vicon_recorder::VerifyObjectExists::Response& response);
 
 private:
-    std::string Adapt(const bool i_Value );
-    std::string Adapt(const ViconDataStreamSDK::CPP::Direction::Enum i_Direction);
-    std::string Adapt(const ViconDataStreamSDK::CPP::DeviceType::Enum i_DeviceType);
-    std::string Adapt(const ViconDataStreamSDK::CPP::Unit::Enum i_Unit);
+    /**
+     * @brief getViconObject() Gets the set of defined objects/subjects in the vicon system
+     *
+     * @return objects set
+     */
+    std::set<std::string> getViconObject();
+
+    /**
+     * @brief recordFrame Records current Vicon frame
+     */
+    bool recordFrame();
 
 private:
     int float_precision_;
     bool connected_;
+    bool recording_;
+    long unsigned int frames_;
     boost::shared_mutex iteration_mutex_;
+    std::ofstream ofs_;
+    std::string object_name_;
 
     std::string hostname_;
     std::string multicast_address_;
