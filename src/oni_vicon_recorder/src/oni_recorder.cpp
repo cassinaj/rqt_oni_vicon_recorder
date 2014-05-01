@@ -137,8 +137,8 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
 
         if (recording_)
         {
-            frames++;
-            ROS_INFO("Frame %d", frames);
+            frames_++;
+            // ROS_INFO("Frame %lu", frames_);
         }
     }
 
@@ -181,7 +181,7 @@ bool OniRecorder::startRecording(std::string destinationFile)
              "Add depth generator node to recording");
 
     recording_ = true;
-    frames = 0;
+    frames_ = 0;
 
     ROS_INFO("Depth data recording started");
 
@@ -212,7 +212,7 @@ bool OniRecorder::stopRecording()
 
 int OniRecorder::countFrames()
 {
-    return frames;
+    return frames_;
 }
 
 bool OniRecorder::isRecording()
