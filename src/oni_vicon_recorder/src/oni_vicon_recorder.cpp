@@ -2,6 +2,8 @@
 
 #include "oni_vicon_recorder/oni_vicon_recorder.hpp"
 
+#include <boost/filesystem.hpp>
+
 using namespace oni_vicon_recorder;
 
 OniViconRecorder::OniViconRecorder(std::string name, ros::NodeHandle& node_handle):
@@ -32,7 +34,7 @@ void OniViconRecorder::run()
 
 void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
 {
-    ROS_INFO("Start ONI recording");
+    ROS_INFO("Start ONI Vicon recording");
     ROS_INFO(" - Recording Name: %s", goal->name.c_str());
     ROS_INFO(" - Recording Destination %s/%s", goal->destination.c_str(), goal->name.c_str());
 
@@ -42,9 +44,31 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     result.vicon_frames = 0;
     result.kinect_frames = 0;
 
-    if(!oni_recorder_.startRecording(goal->destination + "/" + goal->name + ".oni"))
+    // create directory before recording
+    boost::filesystem::path destination_dir(goal->destination);
+    destination_dir /= goal->name;
+    if(!boost::filesystem::create_directory(destination_dir))
     {
-        ROS_WARN("ONI recording aborted.");
+        ROS_ERROR("ONI Vicon recording aborted. Could not create destination directory %s",
+                  destination_dir.c_str());
+        record_as_.setAborted(result);
+        return;
+    }
+
+    boost::filesystem::path oni_file = destination_dir / (goal->name + ".oni");
+    boost::filesystem::path vicon_file = destination_dir / (goal->name + ".txt");
+
+    if(!oni_recorder_.startRecording(oni_file.string()))
+    {
+        ROS_WARN("ONI Vicon recording aborted.");
+        record_as_.setAborted(result);
+        return;
+    }
+
+    if(!vicon_recorder_.startRecording(vicon_file.string(), goal->object_name))
+    {
+        oni_recorder_.stopRecording();
+        ROS_WARN("ONI Vicon recording aborted.");
         record_as_.setAborted(result);
         return;
     }
@@ -62,27 +86,29 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
         {
             break;
         }
-        else if (!oni_recorder_.isRecording()) // !ros::ok() ||
+        else if (!oni_recorder_.isRecording()
+                 || !vicon_recorder_.isRecording()
+                 || !ros::ok())
         {
-            ROS_WARN("ONI recording aborted");
-            result.vicon_frames = 0;
+            ROS_WARN("ONI Vicon recording aborted");
+            result.vicon_frames = vicon_recorder_.countFrames();
             result.kinect_frames = oni_recorder_.countFrames();
             record_as_.setAborted(result);
             oni_recorder_.stopRecording();
+            vicon_recorder_.stopRecording();
             return;
         }
 
         feedback.duration = duration();
-        feedback.vicon_frames = 0;
+        feedback.vicon_frames = vicon_recorder_.countFrames();
         feedback.kinect_frames = oni_recorder_.countFrames();
         record_as_.publishFeedback(feedback);
 
         r.sleep();
-
-        ROS_INFO("Check check check");
     }
 
-    ROS_INFO("Stopping ONI recording");
+    ROS_INFO("Stopping ONI Vicon recording");
+    vicon_recorder_.stopRecording();
     oni_recorder_.stopRecording();
 
     result.vicon_frames = 0;
