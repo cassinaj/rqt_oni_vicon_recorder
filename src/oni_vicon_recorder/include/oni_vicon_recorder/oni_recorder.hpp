@@ -27,6 +27,8 @@
 #include <rgbd_sensor/kinect.h>
 #include <rgbd_sensor/rgbd_sensor.h>
 
+#include "oni_vicon_recorder/frame_time_tracker.hpp"
+
 #define KINECT_IMAGE_COLS       640
 #define KINECT_IMAGE_ROWS       480
 
@@ -56,7 +58,7 @@ if (rc != XN_STATUS_OK)											\
 class OniRecorder
 {
 public:
-    OniRecorder(ros::NodeHandle& node_handle);
+    OniRecorder(ros::NodeHandle& node_handle, FrameTimeTracker::Ptr frame_time_tracker);
     ~OniRecorder();
 
     void changeDeptSensorModeCB(const oni_vicon_recorder::ChangeDepthSensorModeGoalConstPtr &goal);
@@ -65,7 +67,7 @@ public:
 
     bool startRecording(std::string file);
     bool stopRecording();
-    int countFrames();
+    u_int64_t countFrames();
     bool isRecording();
 
 
@@ -80,7 +82,7 @@ private:
     Recorder recorder_;
     bool recording_;
     bool running_;
-    long unsigned int frames_;
+    u_int64_t frames_;
     boost::shared_mutex frameLock_;
     std::map<std::string, XnMapOutputMode> modes_;
 
@@ -88,6 +90,8 @@ private:
         oni_vicon_recorder::RunDepthSensorAction> run_depth_sensor_as_;
     actionlib::SimpleActionServer<
         oni_vicon_recorder::ChangeDepthSensorModeAction> change_depth_sensor_mode_as_;
+
+    FrameTimeTracker::Ptr frame_time_tracker_;
 };
 
 #endif

@@ -5,7 +5,7 @@
 
 using namespace oni_vicon_recorder;
 
-OniRecorder::OniRecorder(ros::NodeHandle &node_handle):
+OniRecorder::OniRecorder(ros::NodeHandle &node_handle, FrameTimeTracker::Ptr frame_time_tracker):
     node_handle_(node_handle),
     recording_(false),
     running_(false),
@@ -16,7 +16,8 @@ OniRecorder::OniRecorder(ros::NodeHandle &node_handle):
     change_depth_sensor_mode_as_(node_handle,
                      "change_depth_sensor_mode",
                      boost::bind(&OniRecorder::changeDeptSensorModeCB, this, _1),
-                     false)
+                     false),
+    frame_time_tracker_(frame_time_tracker)
 {
     run_depth_sensor_as_.start();
     change_depth_sensor_mode_as_.start();
@@ -137,8 +138,7 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
 
         if (recording_)
         {
-            frames_++;
-            // ROS_INFO("Frame %lu", frames_);
+            frame_time_tracker_->depthSensorFrame(++frames_);
         }
     }
 
@@ -210,7 +210,7 @@ bool OniRecorder::stopRecording()
     return true;
 }
 
-int OniRecorder::countFrames()
+u_int64_t OniRecorder::countFrames()
 {
     return frames_;
 }

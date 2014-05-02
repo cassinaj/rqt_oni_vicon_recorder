@@ -20,6 +20,9 @@
 #include <oni_vicon_recorder/ViconObjects.h>
 #include <oni_vicon_recorder/VerifyObjectExists.h>
 #include <oni_vicon_recorder/VerifyObjectExists.h>
+#include <oni_vicon_recorder/ViconFrame.h>
+
+#include "oni_vicon_recorder/frame_time_tracker.hpp"
 
 /**
  * @class ViconRecorder records a subset of the vicon data
@@ -28,6 +31,7 @@
  *
  *  Each line contains data of a single frame. Each line is build up as follows
  *
+ *  - (unsigned int) Recording frame number (starting from zero)
  *  - (unsigned int) FrameNumber
  *  - (unsigned int) Output_GetTimecode.Hours;
  *  - (unsigned int) Output_GetTimecode.Minutes;
@@ -97,12 +101,14 @@ private:
 class ViconRecorder
 {
 public:
-    ViconRecorder(ros::NodeHandle& node_handle, int float_precision = 5);
+    ViconRecorder(ros::NodeHandle& node_handle,
+                  FrameTimeTracker::Ptr frame_time_tracker,
+                  int float_precision = 5);
     ~ViconRecorder();
 
     bool startRecording(const std::string& file, const std::string& object_name);
     bool stopRecording();
-    unsigned long countFrames();
+    u_int64_t countFrames();
     bool isRecording();
     void closeConnection();
 
@@ -122,6 +128,9 @@ public: /* Service Callbacks */
     bool objectExistsCB(oni_vicon_recorder::VerifyObjectExists::Request& request,
                         oni_vicon_recorder::VerifyObjectExists::Response& response);
 
+    bool viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
+                    oni_vicon_recorder::ViconFrame::Response& response);
+
 private:
     /**
      * @brief getViconObject() Gets the set of defined objects/subjects in the vicon system
@@ -139,7 +148,7 @@ private:
     int float_precision_;
     bool connected_;
     bool recording_;
-    long unsigned int frames_;
+    u_int64_t frames_;
     boost::shared_mutex iteration_mutex_;
     std::ofstream ofs_;
     std::string object_name_;
@@ -155,7 +164,10 @@ private:
         oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
 
     ros::ServiceServer vicon_objects_srv_;
+    ros::ServiceServer vicon_frame_srv_;
     ros::ServiceServer object_verification_srv_;
+
+    FrameTimeTracker::Ptr frame_time_tracker_;
 };
 
 

@@ -6,6 +6,8 @@
 #include <string>
 #include <cstdlib>
 #include <sys/time.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
@@ -14,9 +16,10 @@
 
 #include <depth_sensor_vicon_calibration/depth_sensor_vicon_calibration.hpp>
 
-#include "kinect.h"
-#include "oni_recorder.hpp"
-#include "vicon_recorder.hpp"
+#include "oni_vicon_recorder/kinect.h"
+#include "oni_vicon_recorder/oni_recorder.hpp"
+#include "oni_vicon_recorder/vicon_recorder.hpp"
+#include "oni_vicon_recorder/frame_time_tracker.hpp"
 
 class OniViconRecorder
 {
@@ -29,17 +32,13 @@ public:
     void run();
 
 private:
-    u_int64_t duration();
-
-private:
     ros::NodeHandle node_handler_;
+    FrameTimeTracker::Ptr frame_time_tracker_;
     OniRecorder oni_recorder_;
     ViconRecorder vicon_recorder_;
     depth_sensor_vicon_calibration::Calibration global_calibration_;
 
-    actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
-
-    timeval starting_time_;
+    actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;    
 };
 
 #endif

@@ -1,10 +1,15 @@
 
 #include "oni_vicon_recorder/vicon_recorder.hpp"
 
+#include <algorithm>
+#include <iterator>
+
 using namespace oni_vicon_recorder;
 using namespace ViconDataStreamSDK::CPP;
 
-ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle, int float_precision):
+ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
+                             FrameTimeTracker::Ptr frame_time_tracker,
+                             int float_precision):
     float_precision_(float_precision),
     connected_(false),
     recording_(false),
@@ -16,7 +21,8 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle, int float_precision):
     connect_to_vicon_as_(node_handle,
                          "connect_to_vicon",
                          boost::bind(&ViconRecorder::connectCB, this, _1),
-                         false)
+                         false),
+    frame_time_tracker_(frame_time_tracker)
 {
     connect_to_vicon_as_.start();
 
@@ -27,6 +33,10 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle, int float_precision):
     object_verification_srv_ = node_handle.advertiseService("object_exists_verification",
                                                             &ViconRecorder::objectExistsCB,
                                                             this);
+
+    vicon_frame_srv_ = node_handle.advertiseService("vicon_frame",
+                                                    &ViconRecorder::viconFrame,
+                                                    this);
 }
 
 ViconRecorder::~ViconRecorder()
@@ -84,7 +94,7 @@ bool ViconRecorder::stopRecording()
     recording_ = false;
 }
 
-long unsigned int ViconRecorder::countFrames()
+u_int64_t ViconRecorder::countFrames()
 {
     // boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
     // boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
@@ -252,6 +262,58 @@ bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
     return true;
 }
 
+bool ViconRecorder::viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
+                               oni_vicon_recorder::ViconFrame::Response& response)
+{
+    bool objectExists = false;
+    unsigned int SubjectCount = vicon_client_.GetSubjectCount().SubjectCount;
+    for(unsigned int i = 0 ; i < SubjectCount ; ++i)
+    {
+        // Get the subject name
+        std::string object_name = vicon_client_.GetSubjectName(i).SubjectName;
+        if (object_name.compare(request.object_name) != 0)
+        {
+            continue;
+        }
+
+        // Count the number of segments
+        unsigned int segment_count = vicon_client_.GetSegmentCount(object_name).SegmentCount;
+        for(unsigned int j = 0 ; j < segment_count ; ++j)
+        {
+            // Get the segment name
+            std::string SegmentName = vicon_client_.GetSegmentName(object_name, j).SegmentName;
+            if (SegmentName.compare(request.object_name) != 0)
+            {
+                continue;
+            }
+            objectExists = true;
+
+            // Get the global segment translation
+            Output_GetSegmentGlobalTranslation _Output_GetSegmentGlobalTranslation =
+                    vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
+            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 0 ]);
+            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 1 ]);
+            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 2 ]);
+
+            // Get the global segment rotation as a matrix
+            Output_GetSegmentGlobalRotationMatrix _Output_GetSegmentGlobalRotationMatrix =
+                    vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 0 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 1 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 2 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 3 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 4 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 5 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 6 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 7 ]);
+            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ]);
+
+            break;
+        }
+    }
+
+    return true;
+}
 
 std::set<std::string> ViconRecorder::getViconObject()
 {
@@ -290,14 +352,20 @@ std::set<std::string> ViconRecorder::getViconObject()
 
 bool ViconRecorder::recordFrame()
 {
+    frame_time_tracker_->viconFrame(++frames_);
+    beginRecord(ofs_) << frame_time_tracker_->viconFrameTime();
+    record(ofs_) << frames_;
+
+    record(ofs_) << frame_time_tracker_->depthSensorFrameTime();
+    record(ofs_) << frame_time_tracker_->depthSensorFrame();
 
     // Get the frame number
     Output_GetFrameNumber _Output_GetFrameNumber = vicon_client_.GetFrameNumber();
-    beginRecord(ofs_) << _Output_GetFrameNumber.FrameNumber;
+    record(ofs_) << _Output_GetFrameNumber.FrameNumber;
 
     // Get the timecode
+    /*
     Output_GetTimecode _Output_GetTimecode  = vicon_client_.GetTimecode();
-
     record(ofs_) << _Output_GetTimecode.Hours;
     record(ofs_) << _Output_GetTimecode.Minutes;
     record(ofs_) << _Output_GetTimecode.Seconds;
@@ -309,6 +377,7 @@ bool ViconRecorder::recordFrame()
 
     // Get the latency
     record(ofs_) << vicon_client_.GetLatencyTotal().Total;
+    */
 
     bool objectExists = false;
     unsigned int SubjectCount = vicon_client_.GetSubjectCount().SubjectCount;
@@ -351,8 +420,9 @@ bool ViconRecorder::recordFrame()
             record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 5 ];
             record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 6 ];
             record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 7 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ];
+            endRecord(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ];
 
+            /*
             // Get the global segment rotation in quaternion co-ordinates
             Output_GetSegmentGlobalRotationQuaternion _Output_GetSegmentGlobalRotationQuaternion =
                     vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
@@ -367,6 +437,7 @@ bool ViconRecorder::recordFrame()
             record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 0 ];
             record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 1 ];
             endRecord(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 2 ];
+            */
 
             break;
         }
@@ -377,8 +448,6 @@ bool ViconRecorder::recordFrame()
         ROS_WARN("Error: Object <%s> does not exist.", object_name_.c_str());
         return false;
     }
-
-    frames_++;
 
     return true;
 }

@@ -24,6 +24,7 @@ add_service_files(
    DIRECTORY srv
    FILES
    ViconObjects.srv
+   ViconFrame.srv
    VerifyObjectExists.srv
 )
 
@@ -59,6 +60,7 @@ set(oni_vicon_recorder_SOURCES
   src/oni_recorder.cpp
   src/vicon_recorder.cpp
   src/oni_vicon_recorder.cpp
+  src/frame_time_tracker.cpp
 )
 
 set(oni_vicon_recorder_HEADERS
@@ -66,6 +68,7 @@ set(oni_vicon_recorder_HEADERS
   include/${PROJECT_NAME}/oni_recorder.hpp
   include/${PROJECT_NAME}/vicon_recorder.hpp
   include/${PROJECT_NAME}/oni_vicon_recorder.hpp
+  include/${PROJECT_NAME}/frame_time_tracker.hpp
 )
 
 include_directories(include
