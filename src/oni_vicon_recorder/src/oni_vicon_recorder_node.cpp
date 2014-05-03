@@ -61,34 +61,63 @@ using namespace oni_vicon_recorder;
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "oni_vicon_recorder");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
 
     /* Parameters */
 
     // calibration parameters
     int global_calib_iterations;
+    std::string global_calib_object_name;
     std::string global_calib_object;
     std::string global_calib_object_display;
     std::string global_calib_as_name = "depth_sensor_vicon_global_calibration";
     std::string global_calib_continue_as_name = "depth_sensor_vicon_global_calibration_continue";
     nh.param("/global_calibration/iterations", global_calib_iterations, 100);
-    nh.param("/global_calibration/object", global_calib_object, "package://depth_sensor_vicon_calibration/object/calib_obj_downsampled.obj");
-    nh.param("/global_calibration/object_display", global_calib_object_display, "package://depth_sensor_vicon_calibration/object/calib_obj.obj");
+    nh.param("/global_calibration/object_name", global_calib_object_name, std::string("calib_ob"));
+    nh.param("/global_calibration/object", global_calib_object, std::string("package://depth_sensor_vicon_calibration/object/calib_obj_downsampled.obj"));
+    nh.param("/global_calibration/object_display", global_calib_object_display, std::string("package://depth_sensor_vicon_calibration/object/calib_obj.obj"));
+
+    // OniRecorder parameters
+    std::string run_depth_sensor_as_name = "run_depth_sensor";
+    std::string change_depth_sensor_mode_as_name = "change_depth_sensor_mode";
+
+    // OniViconRecorder parameters
+    std::string oni_vicon_recorder_as_name = "oni_vicon_recorder";
+
+    // ViconRecorder parameters
+    std::string vicon_objects_srv_name = "detect_vicon_objects";
+    std::string object_verification_srv_name = "object_exists_verification";
+    std::string vicon_frame_srv_name = "vicon_frame";
 
 
-    // build dependencies and inject them
+    /* build dependencies and inject them */
     FrameTimeTracker::Ptr frame_time_tracker(new FrameTimeTracker());
 
-    OniRecorder oni_recorder(nh, frame_time_tracker);
-    ViconRecorder vicon_recorder(nh, frame_time_tracker);
+    OniRecorder oni_recorder(nh,
+                             frame_time_tracker,
+                             run_depth_sensor_as_name,
+                             change_depth_sensor_mode_as_name);
 
-    Calibration global_calibration(nh, global_calib_iterations,
-                                       global_calib_object,
-                                       global_calib_object_display,
-                                       global_calib_as_name,
-                                       global_calib_continue_as_name);
+    ViconRecorder vicon_recorder(nh,
+                                 frame_time_tracker,
+                                 vicon_objects_srv_name,
+                                 object_verification_srv_name,
+                                 vicon_frame_srv_name);
 
-    OniViconRecorder oni_vicon_recorder("oni_vicon_recorder", node_handle);
+    Calibration calibration(nh,
+                            global_calib_iterations,
+                            global_calib_object_name,
+                            global_calib_object,
+                            global_calib_object_display,
+                            global_calib_as_name,
+                            global_calib_continue_as_name);
+
+    OniViconRecorder oni_vicon_recorder(nh,
+                                        oni_vicon_recorder_as_name,
+                                        frame_time_tracker,
+                                        oni_recorder,
+                                        vicon_recorder,
+                                        calibration);
     oni_vicon_recorder.run();
     return 0;
 }
