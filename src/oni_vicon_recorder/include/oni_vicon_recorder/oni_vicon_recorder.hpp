@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California,
- *                     Karlsruhe Institute of Technology (KIT)
+ *                     Karlsruhe Institute of Technology
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.
@@ -82,21 +82,21 @@ namespace oni_vicon_recorder
     class OniViconRecorder
     {
     public:
-        OniViconRecorder(ros::NodeHandle& node_handle, std::string record_as_name,
+        OniViconRecorder(ros::NodeHandle& node_handle,
+                         std::string record_as_name,
                          FrameTimeTracker::Ptr frame_time_tracker,
                          OniRecorder& oni_recorder,
                          ViconRecorder& vicon_recorder,
                          depth_sensor_vicon_calibration::Calibration& global_calibration);
         virtual ~OniViconRecorder();
         void run();
-
         void recordCB(const oni_vicon_recorder::RecordGoalConstPtr& goal);
 
     private:
         FrameTimeTracker::Ptr frame_time_tracker_;
-        OniRecorder oni_recorder_;
-        ViconRecorder vicon_recorder_;
-        depth_sensor_vicon_calibration::Calibration global_calibration_;
+        OniRecorder& oni_recorder_;
+        ViconRecorder& vicon_recorder_;
+        depth_sensor_vicon_calibration::Calibration& global_calibration_;
 
         actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
     };
