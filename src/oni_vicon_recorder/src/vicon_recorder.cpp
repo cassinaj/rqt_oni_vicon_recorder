@@ -53,6 +53,9 @@ using namespace ViconDataStreamSDK::CPP;
 
 ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
                              FrameTimeTracker::Ptr frame_time_tracker,
+                             std::string vicon_objects_srv_name,
+                             std::string object_verification_srv_name,
+                             std::string vicon_frame_srv_name,
                              int float_precision):
     float_precision_(float_precision),
     connected_(false),
@@ -70,15 +73,15 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
 {
     connect_to_vicon_as_.start();
 
-    vicon_objects_srv_ = node_handle.advertiseService("detect_vicon_objects",
+    vicon_objects_srv_ = node_handle.advertiseService(vicon_objects_srv_name,
                                                       &ViconRecorder::viconObjectsCB,
                                                       this);
 
-    object_verification_srv_ = node_handle.advertiseService("object_exists_verification",
+    object_verification_srv_ = node_handle.advertiseService(object_verification_srv_name,
                                                             &ViconRecorder::objectExistsCB,
                                                             this);
 
-    vicon_frame_srv_ = node_handle.advertiseService("vicon_frame",
+    vicon_frame_srv_ = node_handle.advertiseService(vicon_frame_srv_name,
                                                     &ViconRecorder::viconFrame,
                                                     this);
 }
@@ -289,7 +292,7 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
 
 bool ViconRecorder::viconObjectsCB(ViconObjects::Request& request, ViconObjects::Response& response)
 {
-    std::set<std::string> objects = getViconObject();
+    std::set<std::string> objects = getViconObjects();
     std::copy(objects.begin(), objects.end(), std::back_inserter(response.object_names));
 
     ROS_INFO("Vicon objects requested. Found %lu objects.", objects.size());
@@ -300,7 +303,7 @@ bool ViconRecorder::viconObjectsCB(ViconObjects::Request& request, ViconObjects:
 bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
                                    VerifyObjectExists::Response& response)
 {
-    std::set<std::string> objects = getViconObject();
+    std::set<std::string> objects = getViconObjects();
     response.exists = objects.find(request.object_name) != objects.end();
 
     return true;
@@ -359,7 +362,7 @@ bool ViconRecorder::viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
     return true;
 }
 
-std::set<std::string> ViconRecorder::getViconObject()
+std::set<std::string> ViconRecorder::getViconObjects()
 {
     std::set<std::string> objects;
 
@@ -369,7 +372,7 @@ std::set<std::string> ViconRecorder::getViconObject()
     if(connected_)
     {
         // acquire a frame
-        int wait_time = 1.; // sec
+        int wait_time = 1; // sec
         ros::Rate check_rate(100);
         wait_time *= 100;
         while(vicon_client_.GetFrame().Result != Result::Success && wait_time > 0)
@@ -530,7 +533,11 @@ std::ofstream& ViconRecorder::endRecord(std::ofstream& ofs)
 // == STUB ====================================================================================== //
 // ============================================================================================== //
 
-ViconRecorderStub::ViconRecorderStub(ros::NodeHandle& node_handle, int float_precision):
+ViconRecorderStub::ViconRecorderStub(ros::NodeHandle& node_handle,
+                                     std::string vicon_objects_srv_name,
+                                     std::string object_verification_srv_name,
+                                     std::string vicon_frame_srv_name,
+                                     int float_precision):
     float_precision_(float_precision),
     connected_(false),
     hostname_("localhost:801"),

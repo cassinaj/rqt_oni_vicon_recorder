@@ -113,7 +113,11 @@
 class ViconRecorderStub
 {
 public:
-    ViconRecorderStub(ros::NodeHandle& node_handle, int float_precision = 5);
+    ViconRecorderStub(ros::NodeHandle& node_handle,
+                      std::string vicon_objects_srv_name,
+                      std::string object_verification_srv_name,
+                      std::string vicon_frame_srv_name,
+                      int float_precision = 5);
     ~ViconRecorderStub();
 
 public: /* Action Callbacks */
@@ -147,6 +151,9 @@ class ViconRecorder
 public:
     ViconRecorder(ros::NodeHandle& node_handle,
                   FrameTimeTracker::Ptr frame_time_tracker,
+                  std::string vicon_objects_srv_name,
+                  std::string object_verification_srv_name,
+                  std::string vicon_frame_srv_name,
                   int float_precision = 5);
     ~ViconRecorder();
 
@@ -181,7 +188,7 @@ private:
      *
      * @return objects set
      */
-    std::set<std::string> getViconObject();
+    std::set<std::string> getViconObjects();
 
     /**
      * @brief recordFrame Records current Vicon frame
