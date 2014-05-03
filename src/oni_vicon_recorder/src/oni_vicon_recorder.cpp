@@ -1,22 +1,67 @@
+/*
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
+ *                     University of Southern California,
+ *                     Karlsruhe Institute of Technology (KIT)
+ *    Jan Issac (jan.issac@gmail.com)
+ *
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage, Inc. nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
+/**
+ * @date 04/14/2014
+ * @author Jan Issac (jan.issac@gmail.com)
+ * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ */
 
 #include "oni_vicon_recorder/oni_vicon_recorder.hpp"
 
 #include <boost/filesystem.hpp>
 
 using namespace oni_vicon_recorder;
+using namespace depth_sensor_vicon_calibration;
 
-OniViconRecorder::OniViconRecorder(std::string name, ros::NodeHandle& node_handle):
-    node_handler_(node_handle),
-    frame_time_tracker_(FrameTimeTracker::Ptr(new FrameTimeTracker())),
-    oni_recorder_(node_handle, frame_time_tracker_),
-    vicon_recorder_(node_handle, frame_time_tracker_),
-    global_calibration_(node_handle),
-    record_as_(node_handle,
-               "start_" + name, boost::bind(&OniViconRecorder::recordCB, this, _1),
-               false)
+OniViconRecorder::OniViconRecorder(ros::NodeHandle& nh,
+                                   std::string record_as_name,
+                                   FrameTimeTracker::Ptr frame_time_tracker,
+                                   OniRecorder& oni_recorder,
+                                   ViconRecorder& vicon_recorder,
+                                   Calibration& global_calibration):
+    frame_time_tracker_(frame_time_tracker),
+    oni_recorder_(oni_recorder),
+    vicon_recorder_(vicon_recorder),
+    global_calibration_(global_calibration),
+    record_as_(nh, record_as_name, boost::bind(&OniViconRecorder::recordCB, this, _1), false)
 {
-
 }
 
 OniViconRecorder::~OniViconRecorder()
@@ -29,9 +74,7 @@ void OniViconRecorder::run()
     record_as_.start();
 
     ROS_INFO("OniViconRecorder is running ");
-
     ros::spin();
-
     ROS_INFO("Shutting down OniViconRecorder");
 }
 
@@ -60,9 +103,8 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
 
     frame_time_tracker_->reset();
 
-    boost::filesystem::path oni_file = destination_dir / (goal->name + ".oni");
-    boost::filesystem::path vicon_file = destination_dir / (goal->name + ".txt");
-
+    // start ONI recording
+    boost::filesystem::path oni_file = destination_dir / (goal->name + ".oni");   
     if(!oni_recorder_.startRecording(oni_file.string()))
     {
         ROS_WARN("ONI Vicon recording aborted.");
@@ -70,6 +112,8 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
         return;
     }
 
+    // start Vicon data stream recording
+    boost::filesystem::path vicon_file = destination_dir / (goal->name + ".txt");
     if(!vicon_recorder_.startRecording(vicon_file.string(), goal->object_name))
     {
         oni_recorder_.stopRecording();
@@ -82,6 +126,7 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     feedback.vicon_frames = 0;
     feedback.kinect_frames = 0;
 
+    // report feedback 30 times a second until stopped
     ros::Rate r(30);
     while (true)
     {
