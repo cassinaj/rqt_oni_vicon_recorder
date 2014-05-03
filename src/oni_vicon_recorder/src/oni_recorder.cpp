@@ -49,16 +49,19 @@
 
 using namespace oni_vicon_recorder;
 
-OniRecorder::OniRecorder(ros::NodeHandle &node_handle, FrameTimeTracker::Ptr frame_time_tracker):
+OniRecorder::OniRecorder(ros::NodeHandle& node_handle,
+                         FrameTimeTracker::Ptr frame_time_tracker,
+                         const std::string& run_depth_sensor_as_name,
+                         const std::string& change_depth_sensor_mode_as_name):
     node_handle_(node_handle),
     recording_(false),
     running_(false),
     run_depth_sensor_as_(node_handle,
-                     "run_depth_sensor",
+                     run_depth_sensor_as_name,
                      boost::bind(&OniRecorder::runDepthSensorCB, this, _1),
                      false),
     change_depth_sensor_mode_as_(node_handle,
-                     "change_depth_sensor_mode",
+                     change_depth_sensor_mode_as_name,
                      boost::bind(&OniRecorder::changeDeptSensorModeCB, this, _1),
                      false),
     frame_time_tracker_(frame_time_tracker)
@@ -91,7 +94,8 @@ void OniRecorder::changeDeptSensorModeCB(
 
                 if (currentMode.nXRes != modes_[goal->mode].nXRes)
                 {
-                    result.message = "Changeing resolution while publishing pointcloud not supported.";
+                    result.message = "Changeing resolution while publishing pointcloud not" \
+                                     " supported.";
                     change_depth_sensor_mode_as_.setAborted(result);
                     ROS_WARN("%s", result.message.c_str());
                     return;

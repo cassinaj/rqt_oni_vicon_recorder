@@ -101,7 +101,10 @@ if (rc != XN_STATUS_OK)											\
 class OniRecorder
 {
 public:
-    OniRecorder(ros::NodeHandle& node_handle, FrameTimeTracker::Ptr frame_time_tracker);
+    OniRecorder(ros::NodeHandle& node_handle,
+                FrameTimeTracker::Ptr frame_time_tracker,
+                const std::string& run_depth_sensor_as_name,
+                const std::string& change_depth_sensor_mode_as_name);
     ~OniRecorder();
 
     void changeDeptSensorModeCB(const oni_vicon_recorder::ChangeDepthSensorModeGoalConstPtr &goal);
@@ -112,7 +115,6 @@ public:
     bool stopRecording();
     u_int64_t countFrames();
     bool isRecording();
-
 
     std::map<std::string, XnMapOutputMode> getSupportedModes(const DepthGenerator *generator);
     std::vector<std::string> getSupportedModeList(const std::map<std::string, XnMapOutputMode>& mode_map);
