@@ -24,7 +24,7 @@ add_service_files(
    DIRECTORY srv
    FILES
    ViconObjects.srv
-   ViconFrame.srv
+   ViconObjectPose.srv
    VerifyObjectExists.srv
 )
 
@@ -39,7 +39,7 @@ add_action_files(
 
 generate_messages(
   DEPENDENCIES
-  std_msgs actionlib_msgs std_msgs
+  std_msgs actionlib_msgs std_msgs geometry_msgs
 )
 
 ###################################
@@ -69,6 +69,7 @@ set(oni_vicon_recorder_HEADERS
   include/${PROJECT_NAME}/vicon_recorder.hpp
   include/${PROJECT_NAME}/oni_vicon_recorder.hpp
   include/${PROJECT_NAME}/frame_time_tracker.hpp
+  include/${PROJECT_NAME}/namespaces.hpp
 )
 
 include_directories(include
@@ -91,6 +92,7 @@ add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
 target_link_libraries(oni_vicon_recorder_node
     oni_vicon_recorder
     ${catkin_LIBRARIES}
+    OpenNI
 )
 
 #############

@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California,
- *                     Karlsruhe Institute of Technology (KIT)
+ *                     Karlsruhe Institute of Technology
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.

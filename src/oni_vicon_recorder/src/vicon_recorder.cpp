@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California,
- *                     Karlsruhe Institute of Technology (KIT)
+ *                     Karlsruhe Institute of Technology
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.
@@ -55,7 +55,8 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
                              FrameTimeTracker::Ptr frame_time_tracker,
                              std::string vicon_objects_srv_name,
                              std::string object_verification_srv_name,
-                             std::string vicon_frame_srv_name,
+                             std::string vicon_object_pose_srv_name,
+                             std::string connect_to_vicon_as_name,
                              int float_precision):
     float_precision_(float_precision),
     connected_(false),
@@ -66,7 +67,7 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
     connect_to_multicast_(false),
     multicast_enabled_(false),
     connect_to_vicon_as_(node_handle,
-                         "connect_to_vicon",
+                         connect_to_vicon_as_name,
                          boost::bind(&ViconRecorder::connectCB, this, _1),
                          false),
     frame_time_tracker_(frame_time_tracker)
@@ -81,9 +82,9 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
                                                             &ViconRecorder::objectExistsCB,
                                                             this);
 
-    vicon_frame_srv_ = node_handle.advertiseService(vicon_frame_srv_name,
-                                                    &ViconRecorder::viconFrame,
-                                                    this);
+    vicon_object_pose_srv_ = node_handle.advertiseService(vicon_object_pose_srv_name,
+                                                          &ViconRecorder::viconObjectPose,
+                                                          this);
 }
 
 ViconRecorder::~ViconRecorder()
@@ -309,9 +310,17 @@ bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
     return true;
 }
 
-bool ViconRecorder::viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
-                               oni_vicon_recorder::ViconFrame::Response& response)
+bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request& request,
+                                    oni_vicon_recorder::ViconObjectPose::Response& response)
 {
+    ROS_INFO_STREAM("Requesting object pose of " << request.object_name);
+
+    if (!connected_ || !waitForFrame())
+    {
+        ROS_INFO("Not connected to Vicon or acquiring a frame failed!");
+        return false;
+    }
+
     bool objectExists = false;
     unsigned int SubjectCount = vicon_client_.GetSubjectCount().SubjectCount;
     for(unsigned int i = 0 ; i < SubjectCount ; ++i)
@@ -336,27 +345,45 @@ bool ViconRecorder::viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
             objectExists = true;
 
             // Get the global segment translation
-            Output_GetSegmentGlobalTranslation _Output_GetSegmentGlobalTranslation =
+            Output_GetSegmentGlobalTranslation globalTranslation =
                     vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
-            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 0 ]);
-            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 1 ]);
-            response.translation.push_back(_Output_GetSegmentGlobalTranslation.Translation[ 2 ]);
+            response.object_pose.position.x = globalTranslation.Translation[0];
+            response.object_pose.position.y = globalTranslation.Translation[1];
+            response.object_pose.position.z = globalTranslation.Translation[2];
 
-            // Get the global segment rotation as a matrix
-            Output_GetSegmentGlobalRotationMatrix _Output_GetSegmentGlobalRotationMatrix =
-                    vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 0 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 1 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 2 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 3 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 4 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 5 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 6 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 7 ]);
-            response.rotation.push_back(_Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ]);
+            // Get the global segment rotation in quaternion co-ordinates
+            Output_GetSegmentGlobalRotationQuaternion globalRotationQuaternion =
+                    vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
+
+            response.object_pose.orientation.w = globalRotationQuaternion.Rotation[0];
+            response.object_pose.orientation.x = globalRotationQuaternion.Rotation[0];
+            response.object_pose.orientation.y = globalRotationQuaternion.Rotation[0];
+            response.object_pose.orientation.z = globalRotationQuaternion.Rotation[0];
 
             break;
         }
+    }
+
+    ROS_INFO_STREAM_COND(!objectExists, "Object " << request.object_name << " does not exist");
+    ROS_INFO_STREAM_COND(objectExists, "Object " << request.object_name << " found");
+
+    return objectExists;
+}
+
+bool ViconRecorder::waitForFrame(double wait_time_in_sec)
+{
+    // acquire a frame
+    ros::Rate check_rate(100);
+    int wait_time = wait_time_in_sec * 100;
+    while(vicon_client_.GetFrame().Result != Result::Success && wait_time > 0)
+    {
+        if (--wait_time == 0)
+        {
+            //time out and no frame has been acquired
+            return false;
+        }
+
+        check_rate.sleep();
     }
 
     return true;
@@ -369,7 +396,7 @@ std::set<std::string> ViconRecorder::getViconObjects()
     boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
     boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
 
-    if(connected_)
+    if(connected_ && waitForFrame())
     {
         // acquire a frame
         int wait_time = 1; // sec
@@ -450,41 +477,32 @@ bool ViconRecorder::recordFrame()
             objectExists = true;
 
             // Get the global segment translation
-            Output_GetSegmentGlobalTranslation _Output_GetSegmentGlobalTranslation =
+            Output_GetSegmentGlobalTranslation global_translation =
                     vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
-            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 0 ];
-            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 1 ];
-            record(ofs_) << _Output_GetSegmentGlobalTranslation.Translation[ 2 ];
+            record(ofs_) << global_translation.Translation[ 0 ];
+            record(ofs_) << global_translation.Translation[ 1 ];
+            record(ofs_) << global_translation.Translation[ 2 ];
 
             // Get the global segment rotation as a matrix
-            Output_GetSegmentGlobalRotationMatrix _Output_GetSegmentGlobalRotationMatrix =
+            Output_GetSegmentGlobalRotationMatrix gloabl_rotation_matrix =
                     vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 0 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 1 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 2 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 3 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 4 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 5 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 6 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 7 ];
-            endRecord(ofs_) << _Output_GetSegmentGlobalRotationMatrix.Rotation[ 8 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 0 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 1 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 2 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 3 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 4 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 5 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 6 ];
+            record(ofs_) << gloabl_rotation_matrix.Rotation[ 7 ];
+            endRecord(ofs_) << gloabl_rotation_matrix.Rotation[ 8 ];
 
-            /*
             // Get the global segment rotation in quaternion co-ordinates
-            Output_GetSegmentGlobalRotationQuaternion _Output_GetSegmentGlobalRotationQuaternion =
+            Output_GetSegmentGlobalRotationQuaternion global_rotation_quaternion =
                     vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
-            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 0 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 1 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 2 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationQuaternion.Rotation[ 3 ];
-
-            // Get the global segment rotation in EulerXYZ co-ordinates
-            Output_GetSegmentGlobalRotationEulerXYZ _Output_GetSegmentGlobalRotationEulerXYZ =
-                    vicon_client_.GetSegmentGlobalRotationEulerXYZ( object_name, SegmentName );
-            record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 0 ];
-            record(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 1 ];
-            endRecord(ofs_) << _Output_GetSegmentGlobalRotationEulerXYZ.Rotation[ 2 ];
-            */
+            record(ofs_) << global_rotation_quaternion.Rotation[ 0 ];
+            record(ofs_) << global_rotation_quaternion.Rotation[ 1 ];
+            record(ofs_) << global_rotation_quaternion.Rotation[ 2 ];
+            record(ofs_) << global_rotation_quaternion.Rotation[ 3 ];
 
             break;
         }

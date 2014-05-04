@@ -38,83 +38,31 @@
  */
 
 /**
- * @date 05/03/2014
+ * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
  * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
  */
 
-#include <sys/time.h>
-#include <unistd.h>
+#ifndef ONI_VICON_RECORDER_NAMESPACES_HPP
+#define ONI_VICON_RECORDER_NAMESPACES_HPP
 
-#include "oni_vicon_recorder/frame_time_tracker.hpp"
+/* define action and service namesspaces used by servers and clients */
+// ViconRecorder
+#define ACTION_NS_CONNECT_TO_VICON      "vicon_recorder/action/connect_to_vicon"
+#define SERVICE_NS_VERIFY_OBJECT_EXISTS "vicon_recorder/srv/verify_object_exists"
+#define SERVICE_NS_VICON_OBJECT_POSE    "vicon_recorder/srv/vicon_object_pose"
+#define SERVICE_NS_VICON_OBJECTS        "vicon_recorder/srv/vicon_objects"
 
-FrameTimeTracker::FrameTimeTracker():
-    starting_time_(0.),
-    vicon_frame_(0),
-    depth_sensor_frame_(0)
-{
-}
+// OniViconRecorder
+#define ACTION_NS_RECORD    "oni_vicon_recorder/action/record"
 
-FrameTimeTracker::~FrameTimeTracker()
-{
-}
+// OniRecorder
+#define ACTION_NS_RUN_DEPTH_SENSOR          "oni_recorder/action/run_depth_sensor"
+#define ACTION_NS_CHANGE_DEPTH_SENSOR_MODE  "oni_recorder/action/change_depth_sensor_mode"
 
-void FrameTimeTracker::reset()
-{
-    vicon_frame_ = 0;
-    depth_sensor_frame_ = 0;
+#define ACTION_NS_GLOBAL_CALIBRATION  \
+    "depth_sensor_vicon_calibration/action/global_calibration"
+#define ACTION_NS_CONTINUE_GLOBAL_CALIBRATION  \
+    "depth_sensor_vicon_calibration/action/continue_global_calibration"
 
-    starting_time_ = timeInMilliseconds();
-    vicon_frame_time_ = 0.;
-    depth_senso_frame_time_ = 0.;
-}
-
-unsigned long FrameTimeTracker::viconFrame()
-{
-    return vicon_frame_ ;
-}
-
-unsigned long FrameTimeTracker::depthSensorFrame()
-{
-    return depth_sensor_frame_;
-}
-
-u_int64_t FrameTimeTracker::viconFrameTime()
-{
-    return vicon_frame_time_;
-}
-
-u_int64_t FrameTimeTracker::depthSensorFrameTime()
-{
-    return depth_senso_frame_time_;
-}
-
-void FrameTimeTracker::viconFrame(unsigned long vicon_frame)
-{\
-    vicon_frame_ = vicon_frame;
-    vicon_frame_time_ = timeInMilliseconds();
-}
-
-void FrameTimeTracker::depthSensorFrame(unsigned long depth_sensor_frame)
-{
-    depth_sensor_frame_ = depth_sensor_frame;
-    depth_senso_frame_time_ = timeInMilliseconds();
-}
-
-u_int64_t FrameTimeTracker::timeInSeconds()
-{
-    return timeInMilliseconds() / 1000;
-}
-
-u_int64_t FrameTimeTracker::timeInMicroseconds()
-{
-    return timeInMilliseconds() * 1000;
-}
-
-u_int64_t FrameTimeTracker::timeInMilliseconds()
-{
-    timeval current_time;
-    gettimeofday(&current_time, NULL);
-
-    return (current_time.tv_sec * 1000  + current_time.tv_usec / 1000) - starting_time_;
-}
+#endif

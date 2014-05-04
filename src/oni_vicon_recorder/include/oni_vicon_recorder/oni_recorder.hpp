@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California,
- *                     Karlsruhe Institute of Technology (KIT)
+ *                     Karlsruhe Institute of Technology
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.
@@ -71,25 +71,6 @@
 #include <rgbd_sensor/rgbd_sensor.h>
 
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
-
-#define KINECT_IMAGE_COLS       640
-#define KINECT_IMAGE_ROWS       480
-
-#define KINECT_RGB_FOCAL_LENGTH_DEFAULT     525
-#define KINECT_RGB_CENTER_COL_DEFAULT       320
-#define KINECT_RGB_CENTER_ROW_DEFAULT       240
-#define KINECT_IR_FOCAL_LENGTH_DEFAULT      580
-#define KINECT_IR_CENTER_COL_DEFAULT        320
-#define KINECT_IR_CENTER_ROW_DEFAULT        240
-#define KINECT_RGB_TO_IR_X_DEFAULT          (-0.0254)
-#define KINECT_RGB_TO_IR_Y_DEFAULT          (-0.00013)
-#define KINECT_RGB_TO_IR_Z_DEFAULT          (-0.00218)
-#define KINECT_RGB_TO_IR_ROLL_DEFAULT       0.0 // rad
-#define KINECT_RGB_TO_IR_PITCH_DEFAULT      0.0 // rad
-#define KINECT_RGB_TO_IR_YAW_DEFAULT        0.0 // rad
-
-#define KINECT_VENDOR_ID                    0x45e
-#define XTION_VENDOR_ID                     0x1d27
 
 #define CHECK_RC(rc, what)									    \
 if (rc != XN_STATUS_OK)											\

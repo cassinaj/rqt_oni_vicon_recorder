@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2014 Max-Planck-Institute for Intelligent Systems,
  *                     University of Southern California,
- *                     Karlsruhe Institute of Technology (KIT)
+ *                     Karlsruhe Institute of Technology
  *    Jan Issac (jan.issac@gmail.com)
  *
  *  All rights reserved.
@@ -61,12 +61,13 @@
 #include <actionlib/server/simple_action_server.h>
 
 #include <oni_vicon_recorder/ConnectToViconAction.h>
+
+#include <oni_vicon_recorder/VerifyObjectExists.h>
+#include <oni_vicon_recorder/ViconObjectPose.h>
 #include <oni_vicon_recorder/ViconObjects.h>
-#include <oni_vicon_recorder/VerifyObjectExists.h>
-#include <oni_vicon_recorder/VerifyObjectExists.h>
-#include <oni_vicon_recorder/ViconFrame.h>
 
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
+
 
 /**
  * @class ViconRecorder records a subset of the vicon data
@@ -153,7 +154,8 @@ public:
                   FrameTimeTracker::Ptr frame_time_tracker,
                   std::string vicon_objects_srv_name,
                   std::string object_verification_srv_name,
-                  std::string vicon_frame_srv_name,
+                  std::string vicon_object_pose_srv_name,
+                  std::string connect_to_vicon_as_name,
                   int float_precision = 5);
     ~ViconRecorder();
 
@@ -179,8 +181,10 @@ public: /* Service Callbacks */
     bool objectExistsCB(oni_vicon_recorder::VerifyObjectExists::Request& request,
                         oni_vicon_recorder::VerifyObjectExists::Response& response);
 
-    bool viconFrame(oni_vicon_recorder::ViconFrame::Request& request,
-                    oni_vicon_recorder::ViconFrame::Response& response);
+    bool viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request& request,
+                         oni_vicon_recorder::ViconObjectPose::Response& response);
+
+    bool waitForFrame(double wait_time_in_sec = 3.);
 
 private:
     /**
@@ -215,7 +219,7 @@ private:
         oni_vicon_recorder::ConnectToViconAction> connect_to_vicon_as_;
 
     ros::ServiceServer vicon_objects_srv_;
-    ros::ServiceServer vicon_frame_srv_;
+    ros::ServiceServer vicon_object_pose_srv_;
     ros::ServiceServer object_verification_srv_;
 
     FrameTimeTracker::Ptr frame_time_tracker_;
