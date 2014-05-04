@@ -355,10 +355,10 @@ bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request
             Output_GetSegmentGlobalRotationQuaternion globalRotationQuaternion =
                     vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
 
-            response.object_pose.orientation.w = globalRotationQuaternion.Rotation[0];
+            response.object_pose.orientation.w = globalRotationQuaternion.Rotation[3];
             response.object_pose.orientation.x = globalRotationQuaternion.Rotation[0];
-            response.object_pose.orientation.y = globalRotationQuaternion.Rotation[0];
-            response.object_pose.orientation.z = globalRotationQuaternion.Rotation[0];
+            response.object_pose.orientation.y = globalRotationQuaternion.Rotation[1];
+            response.object_pose.orientation.z = globalRotationQuaternion.Rotation[2];
 
             break;
         }
@@ -499,10 +499,10 @@ bool ViconRecorder::recordFrame()
             // Get the global segment rotation in quaternion co-ordinates
             Output_GetSegmentGlobalRotationQuaternion global_rotation_quaternion =
                     vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
-            record(ofs_) << global_rotation_quaternion.Rotation[ 0 ];
-            record(ofs_) << global_rotation_quaternion.Rotation[ 1 ];
-            record(ofs_) << global_rotation_quaternion.Rotation[ 2 ];
-            record(ofs_) << global_rotation_quaternion.Rotation[ 3 ];
+            record(ofs_) << global_rotation_quaternion.Rotation[3]; // w
+            record(ofs_) << global_rotation_quaternion.Rotation[0]; // x
+            record(ofs_) << global_rotation_quaternion.Rotation[1]; // y
+            record(ofs_) << global_rotation_quaternion.Rotation[2]; // z
 
             break;
         }
