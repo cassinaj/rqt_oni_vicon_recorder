@@ -347,9 +347,9 @@ bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request
             // Get the global segment translation
             Output_GetSegmentGlobalTranslation globalTranslation =
                     vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
-            response.object_pose.position.x = globalTranslation.Translation[0];
-            response.object_pose.position.y = globalTranslation.Translation[1];
-            response.object_pose.position.z = globalTranslation.Translation[2];
+            response.object_pose.position.x = globalTranslation.Translation[0] / 1000.;
+            response.object_pose.position.y = globalTranslation.Translation[1] / 1000.;
+            response.object_pose.position.z = globalTranslation.Translation[2] / 1000.;
 
             // Get the global segment rotation in quaternion co-ordinates
             Output_GetSegmentGlobalRotationQuaternion globalRotationQuaternion =
@@ -479,9 +479,9 @@ bool ViconRecorder::recordFrame()
             // Get the global segment translation
             Output_GetSegmentGlobalTranslation global_translation =
                     vicon_client_.GetSegmentGlobalTranslation( object_name, SegmentName );
-            record(ofs_) << global_translation.Translation[ 0 ];
-            record(ofs_) << global_translation.Translation[ 1 ];
-            record(ofs_) << global_translation.Translation[ 2 ];
+            record(ofs_) << global_translation.Translation[0] / 1000.;
+            record(ofs_) << global_translation.Translation[1] / 1000.;
+            record(ofs_) << global_translation.Translation[2] / 1000.;
 
             // Get the global segment rotation as a matrix
             Output_GetSegmentGlobalRotationMatrix gloabl_rotation_matrix =
