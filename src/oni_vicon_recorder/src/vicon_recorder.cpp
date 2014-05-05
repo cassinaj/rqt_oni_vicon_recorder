@@ -255,7 +255,7 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
     vicon_client_.EnableUnlabeledMarkerData();
     vicon_client_.EnableDeviceData();
     vicon_client_.SetStreamMode(ViconDataStreamSDK::CPP::StreamMode::ClientPull);
-    vicon_client_.SetAxisMapping( Direction::Forward, Direction::Left, Direction::Up); // Z-up
+    vicon_client_.SetAxisMapping(Direction::Forward, Direction::Left, Direction::Up); // Z-up
 
     if(multicast_enabled_)
     {

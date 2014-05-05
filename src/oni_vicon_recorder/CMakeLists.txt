@@ -56,7 +56,6 @@ catkin_package(
 ## Build ##
 ###########
 set(oni_vicon_recorder_SOURCES
-  src/kinect.cc
   src/oni_recorder.cpp
   src/vicon_recorder.cpp
   src/oni_vicon_recorder.cpp
@@ -64,7 +63,6 @@ set(oni_vicon_recorder_SOURCES
 )
 
 set(oni_vicon_recorder_HEADERS
-  include/${PROJECT_NAME}/kinect.h
   include/${PROJECT_NAME}/oni_recorder.hpp
   include/${PROJECT_NAME}/vicon_recorder.hpp
   include/${PROJECT_NAME}/oni_vicon_recorder.hpp

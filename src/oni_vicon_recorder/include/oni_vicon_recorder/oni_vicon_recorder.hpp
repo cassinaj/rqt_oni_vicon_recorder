@@ -59,7 +59,6 @@
 
 #include <depth_sensor_vicon_calibration/depth_sensor_vicon_calibration.hpp>
 
-#include "oni_vicon_recorder/kinect.h"
 #include "oni_vicon_recorder/oni_recorder.hpp"
 #include "oni_vicon_recorder/vicon_recorder.hpp"
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
