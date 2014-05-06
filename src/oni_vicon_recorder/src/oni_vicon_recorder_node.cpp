@@ -67,10 +67,12 @@ int main(int argc, char **argv)
 
     // calibration parameters
     int global_calib_iterations;
+    int local_calib_iterations;
     std::string global_calib_object_name;
     std::string global_calib_object;
     std::string global_calib_object_display;
     nh.param("/global_calibration/iterations", global_calib_iterations, 100);
+    nh.param("/local_calibration/iterations", local_calib_iterations, 100);
     nh.param("/global_calibration/object_name", global_calib_object_name, std::string("calib_ob"));
     nh.param("/global_calibration/object", global_calib_object, std::string("package://depth_sensor_vicon_calibration/object/calib_obj_downsampled.obj"));
     nh.param("/global_calibration/object_display", global_calib_object_display, std::string("package://depth_sensor_vicon_calibration/object/calib_obj.obj"));
@@ -98,6 +100,7 @@ int main(int argc, char **argv)
 
     Calibration calibration(nh,
                             global_calib_iterations,
+                            local_calib_iterations,
                             global_calib_object_name,
                             global_calib_object,
                             global_calib_object_display,
