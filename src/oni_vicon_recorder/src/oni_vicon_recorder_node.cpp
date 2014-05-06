@@ -104,6 +104,9 @@ int main(int argc, char **argv)
                             ACTION_NS_GLOBAL_CALIBRATION,
                             ACTION_NS_CONTINUE_GLOBAL_CALIBRATION,
                             ACTION_NS_COMPLETE_GLOBAL_CALIBRATION,
+                            ACTION_NS_LOCAL_CALIBRATION,
+                            ACTION_NS_CONTINUE_LOCAL_CALIBRATION,
+                            ACTION_NS_COMPLETE_LOCAL_CALIBRATION,
                             SERVICE_NS_VICON_OBJECT_POSE);
 
     OniViconRecorder oni_vicon_recorder(nh,

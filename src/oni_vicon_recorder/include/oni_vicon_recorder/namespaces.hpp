@@ -67,4 +67,11 @@
 #define ACTION_NS_COMPLETE_GLOBAL_CALIBRATION  \
     "depth_sensor_vicon_calibration/action/complete_global_calibration"
 
+#define ACTION_NS_LOCAL_CALIBRATION  \
+    "depth_sensor_vicon_calibration/action/local_calibration"
+#define ACTION_NS_CONTINUE_LOCAL_CALIBRATION  \
+    "depth_sensor_vicon_calibration/action/continue_local_calibration"
+#define ACTION_NS_COMPLETE_LOCAL_CALIBRATION  \
+    "depth_sensor_vicon_calibration/action/complete_local_calibration"
+
 #endif
