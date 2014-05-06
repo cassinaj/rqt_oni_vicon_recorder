@@ -483,6 +483,7 @@ bool ViconRecorder::recordFrame()
             record(ofs_) << global_translation.Translation[1] / 1000.;
             record(ofs_) << global_translation.Translation[2] / 1000.;
 
+            /*
             // Get the global segment rotation as a matrix
             Output_GetSegmentGlobalRotationMatrix gloabl_rotation_matrix =
                     vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
@@ -495,6 +496,7 @@ bool ViconRecorder::recordFrame()
             record(ofs_) << gloabl_rotation_matrix.Rotation[ 6 ];
             record(ofs_) << gloabl_rotation_matrix.Rotation[ 7 ];
             endRecord(ofs_) << gloabl_rotation_matrix.Rotation[ 8 ];
+            */
 
             // Get the global segment rotation in quaternion co-ordinates
             Output_GetSegmentGlobalRotationQuaternion global_rotation_quaternion =
@@ -621,7 +623,8 @@ void ViconRecorderStub::connectCB(const ConnectToViconGoalConstPtr& goal)
     ROS_INFO("Vicon connection closed.");
 }
 
-bool ViconRecorderStub::viconObjectsCB(ViconObjects::Request& request, ViconObjects::Response& response)
+bool ViconRecorderStub::viconObjectsCB(ViconObjects::Request& request,
+                                       ViconObjects::Response& response)
 {
     boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
     boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
