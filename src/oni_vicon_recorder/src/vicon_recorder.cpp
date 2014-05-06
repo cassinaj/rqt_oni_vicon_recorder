@@ -313,7 +313,7 @@ bool ViconRecorder::objectExistsCB(VerifyObjectExists::Request& request,
 bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request& request,
                                     oni_vicon_recorder::ViconObjectPose::Response& response)
 {
-    ROS_INFO_STREAM("Requesting object pose of " << request.object_name);
+    // ROS_INFO_STREAM("Requesting object pose of " << request.object_name);
 
     if (!connected_ || !waitForFrame())
     {
@@ -364,8 +364,8 @@ bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request
         }
     }
 
-    ROS_INFO_STREAM_COND(!objectExists, "Object " << request.object_name << " does not exist");
-    ROS_INFO_STREAM_COND(objectExists, "Object " << request.object_name << " found");
+    // ROS_INFO_STREAM_COND(!objectExists, "Object " << request.object_name << " does not exist");
+    // ROS_INFO_STREAM_COND(objectExists, "Object " << request.object_name << " found");
 
     return objectExists;
 }
