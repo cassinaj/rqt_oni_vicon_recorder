@@ -53,8 +53,6 @@
 #include "oni_vicon_recorder/oni_recorder.hpp"
 #include "oni_vicon_recorder/vicon_recorder.hpp"
 #include "oni_vicon_recorder/oni_vicon_recorder.hpp"
-#include "oni_vicon_recorder/namespaces.hpp"
-
 
 using namespace depth_sensor_vicon_calibration;
 using namespace oni_vicon_recorder;
