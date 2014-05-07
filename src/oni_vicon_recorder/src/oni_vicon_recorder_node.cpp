@@ -47,7 +47,7 @@
 #include <string>
 #include <ros/ros.h>
 
-#include <depth_sensor_vicon_calibration/depth_sensor_vicon_calibration.hpp>
+#include <depth_sensor_vicon_calibration/calibration.hpp>
 
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
 #include "oni_vicon_recorder/oni_recorder.hpp"

@@ -58,7 +58,7 @@
 
 #include <oni_vicon_recorder/RecordAction.h>
 
-#include <depth_sensor_vicon_calibration/depth_sensor_vicon_calibration.hpp>
+#include <depth_sensor_vicon_calibration/calibration.hpp>
 
 #include "oni_vicon_recorder/oni_recorder.hpp"
 #include "oni_vicon_recorder/vicon_recorder.hpp"
