@@ -67,7 +67,6 @@ set(oni_vicon_recorder_HEADERS
   include/${PROJECT_NAME}/vicon_recorder.hpp
   include/${PROJECT_NAME}/oni_vicon_recorder.hpp
   include/${PROJECT_NAME}/frame_time_tracker.hpp
-  include/${PROJECT_NAME}/namespaces.hpp
 )
 
 include_directories(include
