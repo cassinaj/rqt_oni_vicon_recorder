@@ -1,3 +1,4 @@
+string SERVICE_NAME=/oni_vicon_recorder/ViconObjects
 
 ---
 string[] object_names

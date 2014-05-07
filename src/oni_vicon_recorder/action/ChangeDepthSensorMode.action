@@ -1,3 +1,5 @@
+string ACTION_NAME=/oni_vicon_recorder/ChangeDepthSensorMode
+
 string mode
 ---
 string message

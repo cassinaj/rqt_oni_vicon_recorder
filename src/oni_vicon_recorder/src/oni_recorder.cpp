@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #include <boost/bind.hpp>
@@ -49,19 +50,16 @@
 
 using namespace oni_vicon_recorder;
 
-OniRecorder::OniRecorder(ros::NodeHandle& node_handle,
-                         FrameTimeTracker::Ptr frame_time_tracker,
-                         const std::string& run_depth_sensor_as_name,
-                         const std::string& change_depth_sensor_mode_as_name):
+OniRecorder::OniRecorder(ros::NodeHandle& node_handle, FrameTimeTracker::Ptr frame_time_tracker):
     node_handle_(node_handle),
     recording_(false),
     running_(false),
     run_depth_sensor_as_(node_handle,
-                     run_depth_sensor_as_name,
+                     RunDepthSensorGoal::ACTION_NAME,
                      boost::bind(&OniRecorder::runDepthSensorCB, this, _1),
                      false),
     change_depth_sensor_mode_as_(node_handle,
-                     change_depth_sensor_mode_as_name,
+                     ChangeDepthSensorModeGoal::ACTION_NAME,
                      boost::bind(&OniRecorder::changeDeptSensorModeCB, this, _1),
                      false),
     frame_time_tracker_(frame_time_tracker)

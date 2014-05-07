@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #include "oni_vicon_recorder/oni_vicon_recorder.hpp"
@@ -51,7 +52,6 @@ using namespace oni_vicon_recorder;
 using namespace depth_sensor_vicon_calibration;
 
 OniViconRecorder::OniViconRecorder(ros::NodeHandle& nh,
-                                   std::string record_as_name,
                                    FrameTimeTracker::Ptr frame_time_tracker,
                                    OniRecorder& oni_recorder,
                                    ViconRecorder& vicon_recorder,
@@ -60,7 +60,10 @@ OniViconRecorder::OniViconRecorder(ros::NodeHandle& nh,
     oni_recorder_(oni_recorder),
     vicon_recorder_(vicon_recorder),
     global_calibration_(global_calibration),
-    record_as_(nh, record_as_name, boost::bind(&OniViconRecorder::recordCB, this, _1), false)
+    record_as_(nh,
+               RecordGoal::ACTION_NAME,
+               boost::bind(&OniViconRecorder::recordCB, this, _1),
+               false)
 {
 }
 

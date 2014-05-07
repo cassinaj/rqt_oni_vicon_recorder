@@ -40,38 +40,12 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #ifndef ONI_VICON_RECORDER_NAMESPACES_HPP
 #define ONI_VICON_RECORDER_NAMESPACES_HPP
 
-/* define action and service namesspaces used by servers and clients */
-// ViconRecorder
-#define ACTION_NS_CONNECT_TO_VICON      "vicon_recorder/action/connect_to_vicon"
-#define SERVICE_NS_VERIFY_OBJECT_EXISTS "vicon_recorder/srv/verify_object_exists"
-#define SERVICE_NS_VICON_OBJECT_POSE    "vicon_recorder/srv/vicon_object_pose"
-#define SERVICE_NS_VICON_OBJECTS        "vicon_recorder/srv/vicon_objects"
-
-// OniViconRecorder
-#define ACTION_NS_RECORD    "oni_vicon_recorder/action/record"
-
-// OniRecorder
-#define ACTION_NS_RUN_DEPTH_SENSOR          "oni_recorder/action/run_depth_sensor"
-#define ACTION_NS_CHANGE_DEPTH_SENSOR_MODE  "oni_recorder/action/change_depth_sensor_mode"
-
-#define ACTION_NS_GLOBAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/global_calibration"
-#define ACTION_NS_CONTINUE_GLOBAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/continue_global_calibration"
-#define ACTION_NS_COMPLETE_GLOBAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/complete_global_calibration"
-
-#define ACTION_NS_LOCAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/local_calibration"
-#define ACTION_NS_CONTINUE_LOCAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/continue_local_calibration"
-#define ACTION_NS_COMPLETE_LOCAL_CALIBRATION  \
-    "depth_sensor_vicon_calibration/action/complete_local_calibration"
 
 #endif

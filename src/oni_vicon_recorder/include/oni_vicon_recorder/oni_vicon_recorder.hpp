@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #ifndef ONI_VICON_RECORDER_ONI_VICON_RECORDER_HPP
@@ -82,7 +83,6 @@ namespace oni_vicon_recorder
     {
     public:
         OniViconRecorder(ros::NodeHandle& node_handle,
-                         std::string record_as_name,
                          FrameTimeTracker::Ptr frame_time_tracker,
                          OniRecorder& oni_recorder,
                          ViconRecorder& vicon_recorder,

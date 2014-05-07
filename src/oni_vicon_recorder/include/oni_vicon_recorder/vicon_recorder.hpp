@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #ifndef ONI_VICON_RECORDER_VICON_RECORDER_HPP
@@ -150,13 +151,10 @@ private:
 class ViconRecorder
 {
 public:
-    ViconRecorder(ros::NodeHandle& node_handle,
-                  FrameTimeTracker::Ptr frame_time_tracker,
-                  std::string vicon_objects_srv_name,
-                  std::string object_verification_srv_name,
-                  std::string vicon_object_pose_srv_name,
-                  std::string connect_to_vicon_as_name,
-                  int float_precision = 5);
+    ViconRecorder(
+        ros::NodeHandle& node_handle,
+        FrameTimeTracker::Ptr frame_time_tracker,
+        int float_precision = 5);
     ~ViconRecorder();
 
     bool startRecording(const std::string& file, const std::string& object_name);
@@ -180,7 +178,6 @@ public: /* Service Callbacks */
                         oni_vicon_recorder::ViconObjects::Response& response);
     bool objectExistsCB(oni_vicon_recorder::VerifyObjectExists::Request& request,
                         oni_vicon_recorder::VerifyObjectExists::Response& response);
-
     bool viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request& request,
                          oni_vicon_recorder::ViconObjectPose::Response& response);
 
@@ -220,7 +217,7 @@ private:
 
     ros::ServiceServer vicon_objects_srv_;
     ros::ServiceServer vicon_object_pose_srv_;
-    ros::ServiceServer object_verification_srv_;
+    ros::ServiceServer object_exists_srv_;
 
     FrameTimeTracker::Ptr frame_time_tracker_;
 };

@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #include <string>
@@ -69,47 +70,30 @@ int main(int argc, char **argv)
     int global_calib_iterations;
     int local_calib_iterations;
     std::string path = "package://depth_sensor_vicon_calibration/object";
-    std::string global_calib_object_name = "calib_ob";
-    std::string global_calib_object = path + "/calib_obj_downsampled.obj";
-    std::string global_calib_object_display = path + "/calib_obj.obj";
+    std::string calib_object_name = "calib_ob";
+    std::string calib_object = path + "/calib_obj_downsampled.obj";
+    std::string calib_object_display = path + "/calib_obj.obj";
     nh.param("/global_calibration/iterations", global_calib_iterations, 100);
     nh.param("/local_calibration/iterations", local_calib_iterations, 100);
-    nh.param("/global_calibration/object_name", global_calib_object_name, global_calib_object_name);
-    nh.param("/global_calibration/object", global_calib_object, global_calib_object);
-    nh.param("/global_calibration/object_display", global_calib_object_display, global_calib_object_display);
-
+    nh.param("/global_calibration/object_name", calib_object_name, calib_object_name);
+    nh.param("/global_calibration/object", calib_object, calib_object);
+    nh.param("/global_calibration/object_display", calib_object_display, calib_object_display);
 
     /* build dependencies and inject them */
     FrameTimeTracker::Ptr frame_time_tracker(new FrameTimeTracker());
 
-    OniRecorder oni_recorder(nh,
-                             frame_time_tracker,
-                             ACTION_NS_RUN_DEPTH_SENSOR,
-                             ACTION_NS_CHANGE_DEPTH_SENSOR_MODE);
+    OniRecorder oni_recorder(nh, frame_time_tracker);
 
-    ViconRecorder vicon_recorder(nh,
-                                 frame_time_tracker,
-                                 SERVICE_NS_VICON_OBJECTS,
-                                 SERVICE_NS_VERIFY_OBJECT_EXISTS,
-                                 SERVICE_NS_VICON_OBJECT_POSE,
-                                 ACTION_NS_CONNECT_TO_VICON);
+    ViconRecorder vicon_recorder(nh, frame_time_tracker);
 
     Calibration calibration(nh,
                             global_calib_iterations,
                             local_calib_iterations,
-                            global_calib_object_name,
-                            global_calib_object,
-                            global_calib_object_display,
-                            ACTION_NS_GLOBAL_CALIBRATION,
-                            ACTION_NS_CONTINUE_GLOBAL_CALIBRATION,
-                            ACTION_NS_COMPLETE_GLOBAL_CALIBRATION,
-                            ACTION_NS_LOCAL_CALIBRATION,
-                            ACTION_NS_CONTINUE_LOCAL_CALIBRATION,
-                            ACTION_NS_COMPLETE_LOCAL_CALIBRATION,
-                            SERVICE_NS_VICON_OBJECT_POSE);
+                            calib_object_name,
+                            calib_object,
+                            calib_object_display);
 
     OniViconRecorder oni_vicon_recorder(nh,
-                                        ACTION_NS_RECORD,
                                         frame_time_tracker,
                                         oni_recorder,
                                         vicon_recorder,

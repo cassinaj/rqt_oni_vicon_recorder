@@ -40,7 +40,8 @@
 /**
  * @date 04/14/2014
  * @author Jan Issac (jan.issac@gmail.com)
- * Karlsruhe Institute of Technology (KIT), University of Southern California (USC)
+ * Max-Planck-Institute for Intelligent Systems, University of Southern California (USC),
+ *   Karlsruhe Institute of Technology (KIT)
  */
 
 #include "oni_vicon_recorder/vicon_recorder.hpp"
@@ -53,10 +54,6 @@ using namespace ViconDataStreamSDK::CPP;
 
 ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
                              FrameTimeTracker::Ptr frame_time_tracker,
-                             std::string vicon_objects_srv_name,
-                             std::string object_verification_srv_name,
-                             std::string vicon_object_pose_srv_name,
-                             std::string connect_to_vicon_as_name,
                              int float_precision):
     float_precision_(float_precision),
     connected_(false),
@@ -67,22 +64,22 @@ ViconRecorder::ViconRecorder(ros::NodeHandle& node_handle,
     connect_to_multicast_(false),
     multicast_enabled_(false),
     connect_to_vicon_as_(node_handle,
-                         connect_to_vicon_as_name,
+                         ConnectToViconGoal::ACTION_NAME,
                          boost::bind(&ViconRecorder::connectCB, this, _1),
                          false),
     frame_time_tracker_(frame_time_tracker)
 {
     connect_to_vicon_as_.start();
 
-    vicon_objects_srv_ = node_handle.advertiseService(vicon_objects_srv_name,
+    vicon_objects_srv_ = node_handle.advertiseService(ViconObjects::Request::SERVICE_NAME,
                                                       &ViconRecorder::viconObjectsCB,
                                                       this);
 
-    object_verification_srv_ = node_handle.advertiseService(object_verification_srv_name,
-                                                            &ViconRecorder::objectExistsCB,
-                                                            this);
+    object_exists_srv_ = node_handle.advertiseService(VerifyObjectExists::Request::SERVICE_NAME,
+                                                      &ViconRecorder::objectExistsCB,
+                                                      this);
 
-    vicon_object_pose_srv_ = node_handle.advertiseService(vicon_object_pose_srv_name,
+    vicon_object_pose_srv_ = node_handle.advertiseService(ViconObjectPose::Request::SERVICE_NAME,
                                                           &ViconRecorder::viconObjectPose,
                                                           this);
 }
