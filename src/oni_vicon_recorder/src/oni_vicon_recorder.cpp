@@ -96,7 +96,8 @@ void OniViconRecorder::recordCB(const RecordGoalConstPtr& goal)
     // create directory before recording
     boost::filesystem::path destination_dir(goal->destination);
     destination_dir /= goal->name;
-    if(!boost::filesystem::create_directory(destination_dir))
+    if(!boost::filesystem::exists(destination_dir)
+       && !boost::filesystem::create_directory(destination_dir))
     {
         ROS_ERROR("ONI Vicon recording aborted. Could not create destination directory %s",
                   destination_dir.c_str());
