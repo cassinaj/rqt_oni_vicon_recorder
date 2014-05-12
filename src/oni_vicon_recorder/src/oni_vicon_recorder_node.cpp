@@ -64,18 +64,22 @@ int main(int argc, char **argv)
 
     /* Parameters */
 
-    // calibration parameters
-    int global_calib_iterations;
-    int local_calib_iterations;
+    // calibration parameters with defaults
+    int global_calib_iterations = 100;
+    int local_calib_iterations = 100;
     std::string path = "package://depth_sensor_vicon_calibration/object";
     std::string calib_object_name = "calib_ob";
     std::string calib_object = path + "/calib_obj_downsampled.obj";
     std::string calib_object_display = path + "/calib_obj.obj";
-    nh.param("/global_calibration/iterations", global_calib_iterations, 100);
-    nh.param("/local_calibration/iterations", local_calib_iterations, 100);
+    std::string camera_info_topic = "/XTION/depth/camera_info";
+
+    // load set parameters otherwise maintain defautls
+    nh.param("/global_calibration/iterations", global_calib_iterations, global_calib_iterations);
+    nh.param("/local_calibration/iterations", local_calib_iterations, local_calib_iterations);
     nh.param("/global_calibration/object_name", calib_object_name, calib_object_name);
     nh.param("/global_calibration/object", calib_object, calib_object);
     nh.param("/global_calibration/object_display", calib_object_display, calib_object_display);
+    nh.param("/global_calibration/camera_info_topic", camera_info_topic, camera_info_topic);
 
     /* build dependencies and inject them */
     FrameTimeTracker::Ptr frame_time_tracker(new FrameTimeTracker());
@@ -89,7 +93,8 @@ int main(int argc, char **argv)
                             local_calib_iterations,
                             calib_object_name,
                             calib_object,
-                            calib_object_display);
+                            calib_object_display,
+                            camera_info_topic);
 
     OniViconRecorder oni_vicon_recorder(nh,
                                         frame_time_tracker,
@@ -97,5 +102,6 @@ int main(int argc, char **argv)
                                         vicon_recorder,
                                         calibration);
     oni_vicon_recorder.run();
+
     return 0;
 }
