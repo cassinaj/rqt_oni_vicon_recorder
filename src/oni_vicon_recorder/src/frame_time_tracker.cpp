@@ -70,22 +70,22 @@ void FrameTimeTracker::reset()
     depth_senso_frame_time_ = 0.;
 }
 
-unsigned long FrameTimeTracker::viconFrame()
+unsigned long FrameTimeTracker::viconFrame() const
 {
     return vicon_frame_ ;
 }
 
-unsigned long FrameTimeTracker::depthSensorFrame()
+unsigned long FrameTimeTracker::depthSensorFrame() const
 {
     return depth_sensor_frame_;
 }
 
-u_int64_t FrameTimeTracker::viconFrameTime()
+u_int64_t FrameTimeTracker::viconFrameTime() const
 {
     return vicon_frame_time_;
 }
 
-u_int64_t FrameTimeTracker::depthSensorFrameTime()
+u_int64_t FrameTimeTracker::depthSensorFrameTime() const
 {
     return depth_senso_frame_time_;
 }
@@ -102,17 +102,17 @@ void FrameTimeTracker::depthSensorFrame(unsigned long depth_sensor_frame)
     depth_senso_frame_time_ = timeInMilliseconds();
 }
 
-u_int64_t FrameTimeTracker::timeInSeconds()
+u_int64_t FrameTimeTracker::timeInSeconds() const
 {
     return timeInMilliseconds() / 1000;
 }
 
-u_int64_t FrameTimeTracker::timeInMicroseconds()
+u_int64_t FrameTimeTracker::timeInMicroseconds() const
 {
     return timeInMilliseconds() * 1000;
 }
 
-u_int64_t FrameTimeTracker::timeInMilliseconds()
+u_int64_t FrameTimeTracker::timeInMilliseconds() const
 {
     timeval current_time;
     gettimeofday(&current_time, NULL);

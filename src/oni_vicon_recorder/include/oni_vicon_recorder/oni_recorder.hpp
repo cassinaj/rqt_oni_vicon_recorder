@@ -86,11 +86,12 @@ public:
 
     bool startRecording(std::string file);
     bool stopRecording();
-    u_int64_t countFrames();
-    bool isRecording();
+    u_int64_t countFrames() const;
+    bool isRecording() const;
 
-    std::map<std::string, XnMapOutputMode> getSupportedModes(const DepthGenerator *generator);
-    std::vector<std::string> getSupportedModeList(const std::map<std::string, XnMapOutputMode>& mode_map);
+    std::map<std::string, XnMapOutputMode> getSupportedModes(const DepthGenerator *generator) const;
+    std::vector<std::string> getSupportedModeList(
+            const std::map<std::string, XnMapOutputMode>& mode_map) const;
     XnMapOutputMode getCurrentMode(const DepthGenerator *generator) const;
     std::string getModeName(const XnMapOutputMode& mode) const;
 

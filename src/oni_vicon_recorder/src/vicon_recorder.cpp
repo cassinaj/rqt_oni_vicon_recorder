@@ -139,7 +139,7 @@ bool ViconRecorder::stopRecording()
     recording_ = false;
 }
 
-u_int64_t ViconRecorder::countFrames()
+u_int64_t ViconRecorder::countFrames() const
 {
     // boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
     // boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
@@ -147,7 +147,7 @@ u_int64_t ViconRecorder::countFrames()
     return frames_;
 }
 
-bool ViconRecorder::isRecording()
+bool ViconRecorder::isRecording() const
 {
     // boost::upgrade_lock<boost::shared_mutex> lock(iteration_mutex_);
     // boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
@@ -361,9 +361,6 @@ bool ViconRecorder::viconObjectPose(oni_vicon_recorder::ViconObjectPose::Request
         }
     }
 
-    // ROS_INFO_STREAM_COND(!objectExists, "Object " << request.object_name << " does not exist");
-    // ROS_INFO_STREAM_COND(objectExists, "Object " << request.object_name << " found");
-
     return objectExists;
 }
 
@@ -480,21 +477,6 @@ bool ViconRecorder::recordFrame()
             record(ofs_) << global_translation.Translation[1] / 1000.;
             record(ofs_) << global_translation.Translation[2] / 1000.;
 
-            /*
-            // Get the global segment rotation as a matrix
-            Output_GetSegmentGlobalRotationMatrix gloabl_rotation_matrix =
-                    vicon_client_.GetSegmentGlobalRotationMatrix( object_name, SegmentName );
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 0 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 1 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 2 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 3 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 4 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 5 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 6 ];
-            record(ofs_) << gloabl_rotation_matrix.Rotation[ 7 ];
-            endRecord(ofs_) << gloabl_rotation_matrix.Rotation[ 8 ];
-            */
-
             // Get the global segment rotation in quaternion co-ordinates
             Output_GetSegmentGlobalRotationQuaternion global_rotation_quaternion =
                     vicon_client_.GetSegmentGlobalRotationQuaternion( object_name, SegmentName );
@@ -516,7 +498,7 @@ bool ViconRecorder::recordFrame()
     return true;
 }
 
-std::ofstream& ViconRecorder::beginRecord(std::ofstream& ofs)
+std::ofstream& ViconRecorder::beginRecord(std::ofstream& ofs) const
 {
     static bool first_record = true;
 
@@ -534,14 +516,14 @@ std::ofstream& ViconRecorder::beginRecord(std::ofstream& ofs)
     return ofs;
 }
 
-std::ofstream& ViconRecorder::record(std::ofstream& ofs)
+std::ofstream& ViconRecorder::record(std::ofstream& ofs) const
 {
     ofs << " ";
     ofs << std::setprecision(float_precision_);
     return ofs;
 }
 
-std::ofstream& ViconRecorder::endRecord(std::ofstream& ofs)
+std::ofstream& ViconRecorder::endRecord(std::ofstream& ofs) const
 {
     return record(ofs);
 }
@@ -551,9 +533,9 @@ std::ofstream& ViconRecorder::endRecord(std::ofstream& ofs)
 // ============================================================================================== //
 
 ViconRecorderStub::ViconRecorderStub(ros::NodeHandle& node_handle,
-                                     std::string vicon_objects_srv_name,
-                                     std::string object_verification_srv_name,
-                                     std::string vicon_frame_srv_name,
+                                     const std::string &vicon_objects_srv_name,
+                                     const std::string &object_verification_srv_name,
+                                     const std::string &vicon_frame_srv_name,
                                      int float_precision):
     float_precision_(float_precision),
     connected_(false),
@@ -590,7 +572,6 @@ void ViconRecorderStub::connectCB(const ConnectToViconGoalConstPtr& goal)
 
     ConnectToViconFeedback feedback;
     ConnectToViconResult result;
-
 
     ROS_INFO("Connecting to Vicon host %s", goal->host.c_str());
     ROS_INFO("Multicast %s (enabled: %s)",

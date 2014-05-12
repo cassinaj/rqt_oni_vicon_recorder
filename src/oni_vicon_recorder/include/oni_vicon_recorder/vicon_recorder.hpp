@@ -116,9 +116,9 @@ class ViconRecorderStub
 {
 public:
     ViconRecorderStub(ros::NodeHandle& node_handle,
-                      std::string vicon_objects_srv_name,
-                      std::string object_verification_srv_name,
-                      std::string vicon_frame_srv_name,
+                      const std::string& vicon_objects_srv_name,
+                      const std::string& object_verification_srv_name,
+                      const std::string& vicon_frame_srv_name,
                       int float_precision = 5);
     ~ViconRecorderStub();
 
@@ -159,16 +159,13 @@ public:
 
     bool startRecording(const std::string& file, const std::string& object_name);
     bool stopRecording();
-    u_int64_t countFrames();
-    bool isRecording();
+    u_int64_t countFrames() const;
+    bool isRecording() const;
     void closeConnection();
 
-    std::ofstream& beginRecord(std::ofstream& ofs);
-    std::ofstream& record(std::ofstream& ofs);
-    std::ofstream& endRecord(std::ofstream& ofs);
-
-    void record_stuff();
-
+    std::ofstream& beginRecord(std::ofstream& ofs) const;
+    std::ofstream& record(std::ofstream& ofs) const;
+    std::ofstream& endRecord(std::ofstream& ofs) const;
 
 public: /* Action Callbacks */
     void connectCB(const oni_vicon_recorder::ConnectToViconGoalConstPtr& goal);

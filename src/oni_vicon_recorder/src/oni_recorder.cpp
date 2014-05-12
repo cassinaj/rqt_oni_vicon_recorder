@@ -263,18 +263,18 @@ bool OniRecorder::stopRecording()
     return true;
 }
 
-u_int64_t OniRecorder::countFrames()
+u_int64_t OniRecorder::countFrames() const
 {
     return frames_;
 }
 
-bool OniRecorder::isRecording()
+bool OniRecorder::isRecording() const
 {
     return recording_;
 }
 
 std::map<std::string, XnMapOutputMode> OniRecorder::getSupportedModes(
-        const DepthGenerator* generator)
+        const DepthGenerator* generator) const
 {
     std::map<std::string, XnMapOutputMode> mode_map;
 
@@ -296,7 +296,7 @@ std::map<std::string, XnMapOutputMode> OniRecorder::getSupportedModes(
 }
 
 std::vector<std::string> OniRecorder::getSupportedModeList(
-        const std::map<std::string, XnMapOutputMode>& mode_map)
+        const std::map<std::string, XnMapOutputMode>& mode_map) const
 {
     std::vector<std::string> mode_list;
     std::map<std::string, XnMapOutputMode>::const_iterator it = mode_map.begin();

@@ -60,18 +60,18 @@ public:
 
     void reset();
 
-    long unsigned int viconFrame();
-    long unsigned int depthSensorFrame();
+    long unsigned int viconFrame() const;
+    long unsigned int depthSensorFrame() const;
 
-    u_int64_t viconFrameTime();
-    u_int64_t depthSensorFrameTime();
+    u_int64_t viconFrameTime() const;
+    u_int64_t depthSensorFrameTime() const;
 
     void viconFrame(long unsigned int vicon_frame);
     void depthSensorFrame(long unsigned int depth_sensor_frame);
 
-    u_int64_t timeInSeconds();
-    u_int64_t timeInMilliseconds();
-    u_int64_t timeInMicroseconds();
+    u_int64_t timeInSeconds() const;
+    u_int64_t timeInMilliseconds() const;
+    u_int64_t timeInMicroseconds() const;
 
 private:
     u_int64_t starting_time_;
