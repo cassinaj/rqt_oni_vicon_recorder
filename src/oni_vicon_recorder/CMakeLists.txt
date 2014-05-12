@@ -89,7 +89,6 @@ add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
 target_link_libraries(oni_vicon_recorder_node
     oni_vicon_recorder
     ${catkin_LIBRARIES}
-    depth_sensor_vicon_calibration
     OpenNI
 )
 
