@@ -48,6 +48,13 @@
 
 #include <oni_vicon_recorder/oni_recorder.hpp>
 
+#define CHECK_RC(rc, what)									    \
+if (rc != XN_STATUS_OK)											\
+{																\
+    ROS_ERROR("%s failed: %s\n", what, xnGetStatusString(rc));  \
+    return false;												\
+}
+
 using namespace oni_vicon_recorder;
 
 OniRecorder::OniRecorder(ros::NodeHandle& node_handle, FrameTimeTracker::Ptr frame_time_tracker):

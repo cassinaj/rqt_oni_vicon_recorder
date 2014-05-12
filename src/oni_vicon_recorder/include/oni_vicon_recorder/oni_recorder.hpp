@@ -73,13 +73,6 @@
 
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
 
-#define CHECK_RC(rc, what)									    \
-if (rc != XN_STATUS_OK)											\
-{																\
-    ROS_ERROR("%s failed: %s\n", what, xnGetStatusString(rc));  \
-    return false;												\
-}
-
 class OniRecorder
 {
 public:
