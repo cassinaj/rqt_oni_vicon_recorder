@@ -283,7 +283,7 @@ std::map<std::string, XnMapOutputMode> OniRecorder::getSupportedModes(
     generator->GetSupportedMapOutputModes(modes, modeCount);
 
     std::string modeName;
-    for (int i = 0; i < modeCount; i++)
+    for (int i = 0; i < modeCount; ++i)
     {
         modeName = getModeName(modes[i]);
 
