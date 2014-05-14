@@ -191,7 +191,9 @@ void OniRecorder::runDepthSensorCB(const RunDepthSensorGoalConstPtr &goal)
 
         if (recording_)
         {
-            frame_time_tracker_->depthSensorFrame(++frames_);
+            frame_time_tracker_->depthSensorFrame(rgbd_capture_.currentDepthFrameID(),
+                                                  rgbd_capture_.currentDepthFrameTime());
+            frames_++;
         }
     }
 
@@ -263,8 +265,11 @@ bool OniRecorder::stopRecording()
     return true;
 }
 
-u_int64_t OniRecorder::countFrames() const
+u_int64_t OniRecorder::countFrames()
 {
+    boost::upgrade_lock<boost::shared_mutex> lock(frameLock_);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+
     return frames_;
 }
 
