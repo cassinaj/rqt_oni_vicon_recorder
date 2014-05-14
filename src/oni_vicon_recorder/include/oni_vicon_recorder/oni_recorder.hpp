@@ -86,7 +86,7 @@ public:
 
     bool startRecording(std::string file);
     bool stopRecording();
-    u_int64_t countFrames() const;
+    u_int64_t countFrames();
     bool isRecording() const;
 
     std::map<std::string, XnMapOutputMode> getSupportedModes(const DepthGenerator *generator) const;

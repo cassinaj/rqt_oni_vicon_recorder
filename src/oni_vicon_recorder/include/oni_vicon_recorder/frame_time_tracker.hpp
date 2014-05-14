@@ -49,6 +49,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <ros/ros.h>
+
 class FrameTimeTracker
 {
 public:
@@ -60,14 +62,14 @@ public:
 
     void reset();
 
-    long unsigned int viconFrame() const;
-    long unsigned int depthSensorFrame() const;
+    u_int64_t viconFrame() const;
+    u_int64_t depthSensorFrame() const;
 
     u_int64_t viconFrameTime() const;
     u_int64_t depthSensorFrameTime() const;
 
-    void viconFrame(long unsigned int vicon_frame);
-    void depthSensorFrame(long unsigned int depth_sensor_frame);
+    void viconFrame(u_int64_t vicon_frame, const ros::WallTime &time);
+    void depthSensorFrame(u_int64_t depth_sensor_frame, const ros::WallTime &time);
 
     u_int64_t timeInSeconds() const;
     u_int64_t timeInMilliseconds() const;
@@ -77,9 +79,9 @@ private:
     u_int64_t starting_time_;
     u_int64_t vicon_frame_time_;
     u_int64_t depth_senso_frame_time_;
-    long unsigned int vicon_frame_;
-    long unsigned int depth_sensor_frame_;
+
+    u_int64_t vicon_frame_;
+    u_int64_t depth_sensor_frame_;
 };
 
 #endif
-
