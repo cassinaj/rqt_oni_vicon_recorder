@@ -261,7 +261,7 @@ void ViconRecorder::connectCB(const ConnectToViconGoalConstPtr& goal)
 
     ROS_INFO("Connected to Vicon System.");
 
-    ros::Rate check_rate(1000);
+    ros::Rate check_rate(2000); // vicon rate of T10-S system is at max 1000 FPS
     while (!connect_to_vicon_as_.isPreemptRequested() && ros::ok())
     {
         boost::shared_lock<boost::shared_mutex> lock(iteration_mutex_);
@@ -420,7 +420,7 @@ std::set<std::string> ViconRecorder::getViconObjects()
 
 bool ViconRecorder::recordFrame()
 {
-    frame_time_tracker_->viconFrame(++frames_);
+    frame_time_tracker_->viconFrame(++frames_, ros::WallTime::now());
     beginRecord(ofs_) << frame_time_tracker_->viconFrameTime();
     record(ofs_) << frames_;
 
