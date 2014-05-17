@@ -431,7 +431,7 @@ bool ViconRecorder::recordFrame()
     Output_GetFrameNumber _Output_GetFrameNumber = vicon_client_.GetFrameNumber();
     record(ofs_) << _Output_GetFrameNumber.FrameNumber;
 
-    // Get the timecode
+    // Get the timecode. REQUIRES TIME-CODE DEVICE
     /*
     Output_GetTimecode _Output_GetTimecode  = vicon_client_.GetTimecode();
     record(ofs_) << _Output_GetTimecode.Hours;
