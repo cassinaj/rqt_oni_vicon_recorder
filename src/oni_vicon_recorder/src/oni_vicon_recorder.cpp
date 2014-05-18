@@ -49,13 +49,13 @@
 #include <boost/filesystem.hpp>
 
 using namespace oni_vicon_recorder;
-using namespace depth_sensor_vicon_calibration;
+using namespace oni_vicon_calibration;
 
 OniViconRecorder::OniViconRecorder(ros::NodeHandle& nh,
                                    FrameTimeTracker::Ptr frame_time_tracker,
                                    OniRecorder& oni_recorder,
                                    ViconRecorder& vicon_recorder,
-                                   Calibration& global_calibration):
+                                   Calibrator& global_calibration):
     frame_time_tracker_(frame_time_tracker),
     oni_recorder_(oni_recorder),
     vicon_recorder_(vicon_recorder),

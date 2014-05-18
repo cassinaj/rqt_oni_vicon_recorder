@@ -58,7 +58,7 @@
 
 #include <oni_vicon_recorder/RecordAction.h>
 
-#include <depth_sensor_vicon_calibration/calibration.hpp>
+#include <oni_vicon_calibration/calibrator.hpp>
 
 #include "oni_vicon_recorder/oni_recorder.hpp"
 #include "oni_vicon_recorder/vicon_recorder.hpp"
@@ -77,7 +77,7 @@ namespace oni_vicon_recorder
      *  - oni_vicon_recorder::FrameTimeTracker
      *  - oni_vicon_recorder::OniRecorder
      *  - oni_vicon_recorder::ViconRecorder
-     *  - depth_sensor_vicon_calibration::Calibration
+     *  - oni_vicon_calibration::Calibration
      */
     class OniViconRecorder
     {
@@ -86,7 +86,7 @@ namespace oni_vicon_recorder
                          FrameTimeTracker::Ptr frame_time_tracker,
                          OniRecorder& oni_recorder,
                          ViconRecorder& vicon_recorder,
-                         depth_sensor_vicon_calibration::Calibration& global_calibration);
+                         oni_vicon_calibration::Calibrator& global_calibration);
         virtual ~OniViconRecorder();
         void run();
         void recordCB(const oni_vicon_recorder::RecordGoalConstPtr& goal);
@@ -95,7 +95,7 @@ namespace oni_vicon_recorder
         FrameTimeTracker::Ptr frame_time_tracker_;
         OniRecorder& oni_recorder_;
         ViconRecorder& vicon_recorder_;
-        depth_sensor_vicon_calibration::Calibration& global_calibration_;
+        oni_vicon_calibration::Calibrator& global_calibration_;
 
         actionlib::SimpleActionServer<oni_vicon_recorder::RecordAction> record_as_;
     };

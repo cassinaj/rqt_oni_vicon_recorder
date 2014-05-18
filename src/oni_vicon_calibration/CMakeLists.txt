@@ -1,97 +1,99 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(oni_vicon_recorder)
+project(oni_vicon_calibration)
 
-find_package(catkin REQUIRED
+find_package(catkin REQUIRED COMPONENTS
     roscpp
     std_msgs
     message_generation
     actionlib_msgs
     actionlib
-    rgbd_sensor
-    vicon_sdk
-    oni_vicon_calibration)
+    interactive_markers
+    simple_object_tracker
+    tf
+    oni_vicon_common)
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-catkin_python_setup()
+find_package(Eigen REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-
-add_service_files(
-   DIRECTORY srv
-   FILES
-   ViconObjects.srv
-   ViconObjectPose.srv
-   VerifyObjectExists.srv
+add_action_files(
+    DIRECTORY action
+    FILES
+    GlobalCalibration.action
+    LocalCalibration.action
+    TestCalibration.action
 )
 
-add_action_files(
-  DIRECTORY action
-  FILES
-  Record.action
-  RunDepthSensor.action
-  ChangeDepthSensorMode.action
-  ConnectToVicon.action
+add_service_files(
+    DIRECTORY srv
+    FILES
+    LoadGlobalCalibration.srv
+    LoadLocalCalibration.srv
+    SaveGlobalCalibration.srv
+    SaveLocalCalibration.srv
+    ContinueLocalCalibration.srv
+    CompleteLocalCalibration.srv
+    ContinueGlobalCalibration.srv
+    CompleteGlobalCalibration.srv
+    ContinueTestCalibration.srv
 )
 
 generate_messages(
-  DEPENDENCIES
-  std_msgs actionlib_msgs std_msgs geometry_msgs
+    DEPENDENCIES
+    std_msgs actionlib_msgs std_msgs visualization_msgs geometry_msgs
 )
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
- INCLUDE_DIRS include
- LIBRARIES oni_vicon_recorder
- CATKIN_DEPENDS actionlib_msgs actionlib vicon_sdk rgbd_sensor oni_vicon_calibration
- DEPENDS OpenNI
+    INCLUDE_DIRS include
+    LIBRARIES oni_vicon_calibration
+    CATKIN_DEPENDS
+        actionlib_msgs
+        actionlib
+        interactive_markers
+        simple_object_tracker
+        tf
+        oni_vicon_common
+    DEPENDS eigen
 )
 
 ###########
 ## Build ##
 ###########
-set(oni_vicon_recorder_SOURCES
-  src/oni_recorder.cpp
-  src/vicon_recorder.cpp
-  src/oni_vicon_recorder.cpp
-  src/frame_time_tracker.cpp
-)
 
-set(oni_vicon_recorder_HEADERS
-  include/${PROJECT_NAME}/oni_recorder.hpp
-  include/${PROJECT_NAME}/vicon_recorder.hpp
-  include/${PROJECT_NAME}/oni_vicon_recorder.hpp
-  include/${PROJECT_NAME}/frame_time_tracker.hpp
-)
-
-include_directories(include
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+    include
     ${catkin_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    "/usr/include/ni/" # FIXME superbly uggly
+    "/usr/include/ni/"
 )
 
-add_library(oni_vicon_recorder ${oni_vicon_recorder_SOURCES} ${oni_vicon_recorder_HEADERS})
-target_link_libraries(oni_vicon_recorder
-    ${catkin_LIBRARIES}
-    "ViconDataStreamSDK_CPP"
-    OpenNI
-    ${OpenCV_LIBS}
-    ${Boost_LIBRARIES}
-    yaml-cpp
+set(oni_vicon_calibration_HEADERS
+    include/${PROJECT_NAME}/calibrator.hpp
 )
 
-add_executable(oni_vicon_recorder_node src/oni_vicon_recorder_node.cpp)
-target_link_libraries(oni_vicon_recorder_node
-    oni_vicon_recorder
-    ${catkin_LIBRARIES}
-    OpenNI
+set(oni_vicon_calibration_SOURCES
+    src/${PROJECT_NAME}/calibrator.cpp
 )
 
+add_library(oni_vicon_calibration
+   ${oni_vicon_calibration_HEADERS}
+   ${oni_vicon_calibration_SOURCES}
+)
+
+target_link_libraries(oni_vicon_calibration
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  yaml-cpp
+)
 #############
 ## Install ##
 #############
@@ -107,7 +109,7 @@ target_link_libraries(oni_vicon_recorder_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS oni_vicon_recorder oni_vicon_recorder_node
+# install(TARGETS oni_vicon_calibration oni_vicon_calibration_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -132,7 +134,7 @@ target_link_libraries(oni_vicon_recorder_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_oni_vicon_recorder.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_oni_vicon_calibration.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

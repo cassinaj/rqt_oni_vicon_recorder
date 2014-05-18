@@ -47,14 +47,14 @@
 #include <string>
 #include <ros/ros.h>
 
-#include <depth_sensor_vicon_calibration/calibration.hpp>
+#include <oni_vicon_calibration/calibrator.hpp>
 
 #include "oni_vicon_recorder/frame_time_tracker.hpp"
 #include "oni_vicon_recorder/oni_recorder.hpp"
 #include "oni_vicon_recorder/vicon_recorder.hpp"
 #include "oni_vicon_recorder/oni_vicon_recorder.hpp"
 
-using namespace depth_sensor_vicon_calibration;
+using namespace oni_vicon_calibration;
 using namespace oni_vicon_recorder;
 
 int main(int argc, char **argv)
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     // calibration parameters with defaults
     int global_calib_iterations = 100;
     int local_calib_iterations = 100;
-    std::string path = "package://depth_sensor_vicon_calibration/object";
+    std::string path = "package://oni_vicon_calibration/object";
     std::string calib_object_name = "calib_ob";
     std::string calib_object = path + "/calib_obj_downsampled.obj";
     std::string calib_object_display = path + "/calib_obj.obj";
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
     ViconRecorder vicon_recorder(nh, frame_time_tracker);
 
-    Calibration calibration(nh,
+    Calibrator calibration(nh,
                             global_calib_iterations,
                             local_calib_iterations,
                             calib_object_name,

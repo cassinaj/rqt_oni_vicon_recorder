@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>oni_vicon_recorder</name>
+  <name>oni_vicon_calibration</name>
   <version>0.0.0</version>
-  <description>The oni_vicon_recorder package</description>
+  <description>The oni_vicon_calibration package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -13,12 +13,13 @@
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>BSD</license>
+
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/oni_vicon_recorder</url> -->
+  <!-- <url type="website">http://wiki.ros.org/oni_vicon_calibration</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -31,44 +32,35 @@
   <!-- Dependencies can be catkin packages or system dependencies -->
   <!-- Examples: -->
   <!-- Use build_depend for packages you need at compile time: -->
+  <!--   <build_depend>message_generation</build_depend> -->
   <!-- Use buildtool_depend for build tool packages: -->
   <!--   <buildtool_depend>catkin</buildtool_depend> -->
   <!-- Use run_depend for packages you need at runtime: -->
+  <!--   <run_depend>message_runtime</run_depend> -->
   <!-- Use test_depend for packages you need only for testing: -->
-  <!--   <test_depend>gtest</test_depend> -->  
+  <!--   <test_depend>gtest</test_depend> -->
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
-  <build_depend>libopenni-dev</build_depend>
-  <build_depend>libopenni-sensor-primesense-dev</build_depend>
-  <build_depend>vicon_sdk</build_depend>
-  <build_depend>rgbd_sensor</build_depend>
-  <build_depend>oni_vicon_calibration</build_depend>
+  <build_depend>interactive_markers</build_depend>
   <build_depend>simple_object_tracker</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>oni_vicon_common</build_depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>message_runtime</run_depend>
+  <run_depend>message_runtime</run_depend>    
   <run_depend>actionlib</run_depend>
-  <run_depend>actionlib_msgs</run_depend>
-  <run_depend>libopenni-dev</run_depend>
-  <run_depend>libopenni-sensor-primesense-dev</run_depend>
-  <run_depend>vicon_sdk</run_depend>
-  <run_depend>rgbd_sensor</run_depend>
-  <run_depend>oni_vicon_calibration</run_depend>
+  <run_depend>actionlib_msgs</run_depend> 
+  <run_depend>interactive_markers</run_depend> 
   <run_depend>simple_object_tracker</run_depend>
-
-  <!-- <build_depend>arm_rgbd</build_depend> -->
+  <run_depend>eigen</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>oni_vicon_common</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- You can specify that this package is a metapackage here: -->
-    <!-- <metapackage/> -->
-
-    <!-- Other tools can request additional information be placed here -->
-
   </export>
 </package>
