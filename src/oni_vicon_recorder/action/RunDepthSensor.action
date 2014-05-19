@@ -1,8 +1,0 @@
-string ACTION_NAME=/oni_vicon_recorder/RunDepthSensor
-
----
----
-string[] modes
-string mode
-string device_type
-string device_name
