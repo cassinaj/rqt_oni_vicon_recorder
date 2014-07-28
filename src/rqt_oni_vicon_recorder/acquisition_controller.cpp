@@ -220,10 +220,8 @@ void AcquisitionController::initPlugin(qt_gui_cpp::PluginContext& context)
     connect(ui_.trackingObjetModelLineEdit,
             SIGNAL(textChanged(QString)), this, SLOT(onSettingsChanged(QString)));
 
-    qRegisterMetaType<u_int64_t>("u_int64_t");
-
-    connect(this, SIGNAL(feedbackReceived(int, int, u_int64_t)),
-            this, SLOT(oUpdateFeedback(int, int, u_int64_t)));
+    connect(this, SIGNAL(feedbackReceived(int, int, double)),
+            this, SLOT(oUpdateFeedback(int, int, double)));
     connect(this, SIGNAL(setStatusIcon(QString,QString)),
             this, SLOT(onSetStatusIcon(QString,QString)));
     connect(this, SIGNAL(globalCalibrationFeedback(int,int,QString)),
@@ -1018,7 +1016,7 @@ void AcquisitionController::onUpdateStatus()
                                   || isActive("recording"));
 }
 
-void AcquisitionController::oUpdateFeedback(int vicon_frames, int kinect_frames, u_int64_t duration)
+void AcquisitionController::oUpdateFeedback(int vicon_frames, int kinect_frames, double duration)
 {
     static unsigned int dots = 0;
     static int last_frame = 0;
@@ -1040,18 +1038,18 @@ void AcquisitionController::oUpdateFeedback(int vicon_frames, int kinect_frames,
     std::ostringstream viconFramesStream;
     viconFramesStream << vicon_frames;
     viconFramesStream << std::fixed << std::setprecision(2);
-    viconFramesStream << " (" << (vicon_frames * 1000. / duration) << " fps)";
+    viconFramesStream << " (" << (vicon_frames / duration) << " fps)";
     statusItem("Recorded Vicon frames").status->setText(viconFramesStream.str().c_str());
 
     std::ostringstream kinectFramesStream;
     kinectFramesStream << kinect_frames;
     kinectFramesStream << std::fixed << std::setprecision(2);
-    kinectFramesStream << " (" << (kinect_frames * 1000. / duration) << " fps)";
+    kinectFramesStream << " (" << (kinect_frames  / duration) << " fps)";
     statusItem("Recorded Depth Sensor frames").status->setText(kinectFramesStream.str().c_str());
 
     std::ostringstream durationStream;
     durationStream << std::fixed << std::setprecision(2);
-    durationStream << duration/1000.;
+    durationStream << duration;
     durationStream << " s";
     statusItem("Recording duration").status->setText(durationStream.str().c_str());
 }

@@ -132,7 +132,7 @@ namespace rqt_oni_vicon_recorder
         void onSubmitSettings();
         void onToggleSameModel(bool single_model);
         void onUpdateStatus();
-        void oUpdateFeedback(int vicon_frames, int kinect_frames, u_int64_t duration);
+        void oUpdateFeedback(int vicon_frames, int kinect_frames, double duration);
         void onSelectDirectory();
         void onGenerateRecordName();
         void onDetectViconObjects();
@@ -164,7 +164,7 @@ namespace rqt_oni_vicon_recorder
         void onLoadLocalCalibration();
 
     signals:
-        void feedbackReceived(int vicon_frames, int kinect_frames, u_int64_t duration);
+        void feedbackReceived(int vicon_frames, int kinect_frames, double duration);
         void setStatusIcon(QString setting, QString url);
         void globalCalibrationFeedback(int progress, int max_progress, QString status);
         void localCalibrationFeedback(int progress, int max_progress, QString status);
